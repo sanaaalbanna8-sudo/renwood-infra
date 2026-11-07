@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0B1020" />
+    <meta
+      name="description"
+      content="مصمم البنية التحتية لشركة رينواد تورز: يبني طالب وحدة أنظمة تكنولوجيا المعلومات بنيته خطوة بخطوة ثم يأخذ ملخصاً للتقرير."
+    />
+    <title>مصمم البنية التحتية: رينواد تورز</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <script>
+      try {
+        var theme = localStorage.getItem('renwood-theme');
+        if (theme === 'light' || theme === 'dark') {
+          document.documentElement.dataset.theme = theme;
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.setAttribute('content', theme === 'light' ? '#F3F6FB' : '#0B1020');
+        }
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

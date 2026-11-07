@@ -1,0 +1,110 @@
+import { coveredNeeds } from '../data/needs';
+import { quantityItems } from '../data/quantities';
+import { questions } from '../data/questions';
+import type { Question, SaveData } from './types';
+import { completionRatio } from './progress';
+import { checkRules } from './rules';
+import { generateStory } from './story';
+
+const OPEN = '⟪';
+const CLOSE = '⟫';
+
+export type SheetCatalogItem = {
+  title: string;
+  column: number;
+  options: string[];
+};
+
+export type SheetPayload = {
+  name: string;
+  group: string;
+  sentAt: string;
+  completion: number;
+  needs: string;
+  warnings: string;
+  story: string;
+  headers: string[];
+  values: Array<string | number>;
+  catalog: SheetCatalogItem[];
+};
+
+export function wrapChoice(text: string): string {
+  return `${OPEN}${text}${CLOSE}`;
+}
+
+function stamp(date: Date): string {
+  const part = (value: number) => String(value).padStart(2, '0');
+  return `${date.getFullYear()}-${part(date.getMonth() + 1)}-${part(date.getDate())} ${part(date.getHours())}:${part(date.getMinutes())}`;
+}
+
+function questionCell(question: Question, data: SaveData): string {
+  if (question.id === 'م2') {
+    const parts = Object.entries(data.priorities)
+      .filter(([, priority]) => priority.trim())
+      .map(([tech, priority]) => `${wrapChoice(priority)} (${tech})`);
+    return parts.length ? parts.join(' ') : 'لم تجب';
+  }
+  const parts = (data.answers[question.id] ?? []).map((option) => {
+    const priority = question.id === 'م1' ? data.priorities[option]?.trim() : '';
+    return priority ? `${wrapChoice(option)} (${priority})` : wrapChoice(option);
+  });
+  const extra = data.other[question.id]?.trim();
+  if (extra) parts.push(wrapChoice(`خيار مضاف: ${extra}`));
+  return parts.length ? parts.join(' ') : 'لم تجب';
+}
+
+export function buildSheetPayload(data: SaveData, date = new Date()): SheetPayload {
+  const headers = ['وقت الإرسال', 'الاسم', 'الشعبة'];
+  const values: Array<string | number> = [stamp(date), data.name.trim(), data.group.trim()];
+  const catalog: SheetCatalogItem[] = [];
+
+  for (const question of questions) {
+    const title = `${question.id} · ${question.short}`;
+    headers.push(title);
+    values.push(questionCell(question, data));
+    if (question.options.length > 0) {
+      catalog.push({ title, column: headers.length, options: question.options });
+    }
+  }
+
+  for (const item of quantityItems) {
+    const stored = data.quantities[item.label];
+    headers.push(`${item.label} · العدد`);
+    values.push(stored?.count == null ? 'لم يُحدد' : stored.count);
+    headers.push(`${item.label} · الموقع`);
+    values.push(stored?.location?.trim() || 'لم يُحدد');
+  }
+
+  const warnings = checkRules({ answers: data.answers, other: data.other, priorities: data.priorities });
+  const covered = coveredNeeds(data.answers, data.other).map((need) => need.title);
+
+  return {
+    name: data.name.trim(),
+    group: data.group.trim(),
+    sentAt: stamp(date),
+    completion: completionRatio(data),
+    needs: covered.length ? covered.join('، ') : 'لا حاجة مغطاة بعد',
+    warnings: warnings.map((warning) => (warning.detail ? `${warning.message}: ${warning.detail}` : warning.message)).join('\n'),
+    story: generateStory(data.answers, data.name, { other: data.other, warnings: warnings.map((warning) => warning.message) }),
+    headers,
+    values,
+    catalog,
+  };
+}
+
+export async function submitResults(data: SaveData): Promise<{ ok: boolean; message: string }> {
+  try {
+    const response = await fetch('/api/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(buildSheetPayload(data)),
+    });
+    const payload = (await response.json().catch(() => null)) as { ok?: boolean; message?: string } | null;
+    if (!response.ok || payload?.ok === false) {
+      return { ok: false, message: payload?.message || 'تعذر إرسال النتائج إلى جدول المعلمة' };
+    }
+    return { ok: true, message: payload?.message || 'وصلت النتائج إلى جدول المعلمة' };
+  } catch {
+    return { ok: false, message: 'تعذر الاتصال بجدول المعلمة' };
+  }
+}
