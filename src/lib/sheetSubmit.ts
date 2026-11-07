@@ -139,11 +139,12 @@ export async function submitResults(data: SaveData): Promise<{ ok: boolean; mess
       body,
     });
     const payload = (await response.json().catch(() => null)) as { ok?: boolean; message?: string } | null;
-    if (payload) {
-      if (!response.ok || payload.ok === false) {
-        return { ok: false, message: payload.message || 'تعذر إرسال النتائج إلى جدول المعلمة' };
-      }
+    if (payload && response.ok && payload.ok !== false) {
       return { ok: true, message: payload.message || 'وصلت النتائج إلى جدول المعلمة' };
+    }
+    const canFallBack = !payload || response.status === 502 || response.status === 503;
+    if (payload && !canFallBack) {
+      return { ok: false, message: payload.message || 'تعذر إرسال النتائج إلى جدول المعلمة' };
     }
   } catch {
     /* The class site can also write straight to the sheet. */

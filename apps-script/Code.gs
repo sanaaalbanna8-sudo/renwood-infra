@@ -141,6 +141,9 @@ function buildCharts() {
     dash.getCharts().forEach(function (chart) {
       dash.removeChart(chart);
     });
+    if (dash.getMaxRows() < 1400) {
+      dash.insertRowsAfter(dash.getMaxRows(), 1400 - dash.getMaxRows());
+    }
   }
   PropertiesService.getScriptProperties().setProperty('chartsBuilt', '0');
   const total = blocksFromStats(ss.getSheetByName('الإحصاء')).length;

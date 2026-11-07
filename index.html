@@ -19,6 +19,17 @@
           if (meta) meta.setAttribute('content', theme === 'light' ? '#F3F6FB' : '#0B1020');
         }
       } catch (e) {}
+      try {
+        var path = location.pathname.replace(/\/index\.html$/, '');
+        var extra = path.replace(/\/$/, '');
+        var onGitHub = extra === '/renwood-infra' || extra.indexOf('/renwood-infra/') === 0;
+        var knownRoot = extra === '' || extra === '/renwood-infra';
+        if (!knownRoot && !location.hash && extra.indexOf('.') === -1) {
+          var root = onGitHub ? '/renwood-infra/' : '/';
+          var rest = onGitHub ? extra.slice('/renwood-infra'.length) : extra;
+          location.replace(root + '#' + rest + location.search);
+        }
+      } catch (e) {}
     </script>
   </head>
   <body>

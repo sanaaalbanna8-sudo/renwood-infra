@@ -6,12 +6,9 @@ import { Celebrate } from '../components/Celebrate';
 import { stageById } from '../data/stages';
 import { useStore } from '../context/Store';
 import { useTheme } from '../context/Theme';
-import { downloadText } from '../lib/download';
 import { questionPath } from '../lib/progress';
-import { buildReport, reportToMarkdown, reportToPlain, type ReportRow } from '../lib/report';
+import { buildReport, type ReportRow } from '../lib/report';
 import { submitResults } from '../lib/sheetSubmit';
-import { serializeStudent } from '../lib/storage';
-import { safeFileName } from '../lib/text';
 import type { SaveData, Warning } from '../lib/types';
 import { useTitle } from '../lib/useTitle';
 import { Check, Moon, Sun } from 'lucide-react';
@@ -27,10 +24,8 @@ export function Summary() {
   const snapshot = state?.snapshot;
   const readonly = Boolean(snapshot);
   const data = snapshot ?? live;
-  useTitle(readonly ? `ملخص ${data.name}` : 'الملخص');
+  useTitle(`ملخص ${data.name}`);
   const report = useMemo(() => buildReport(data), [data]);
-  const [open, setOpen] = useState<Record<string, boolean>>({});
-  const [copied, setCopied] = useState(false);
   const [celebrate, setCelebrate] = useState(Boolean(state?.celebrate && !readonly));
   const [sendState, setSendState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [sendNote, setSendNote] = useState('');
@@ -58,8 +53,6 @@ export function Summary() {
 
   if (!readonly && data.name.trim().length < 2) return <Navigate to="/" replace />;
 
-  const fileBase = safeFileName(data.name);
-
   return (
     <>
       <Background />
@@ -83,48 +76,13 @@ export function Summary() {
               {readonly ? ' · عرض فقط' : ''}
             </p>
             <div className="actions no-print">
-              <button type="button" className="btn" onClick={() => window.print()}>
-                طباعة أو حفظ PDF
+              <button type="button" className="btn-primary pdf-btn" onClick={() => window.print()}>
+                عرض اختياراتي PDF
               </button>
-              <button
-                type="button"
-                className="btn"
-                onClick={async () => {
-                  try {
-                    await navigator.clipboard.writeText(reportToPlain(report));
-                    setCopied(true);
-                  } catch {
-                    setCopied(false);
-                  }
-                }}
-              >
-                {copied ? 'تم النسخ' : 'نسخ الملخص كنص'}
-              </button>
-              <button type="button" className="btn" onClick={() => downloadText(`${fileBase}.json`, serializeStudent(data), 'application/json;charset=utf-8')}>
-                تنزيل الإجابات
-              </button>
-              <button type="button" className="btn" onClick={() => downloadText(`${fileBase}.md`, reportToMarkdown(report), 'text/markdown;charset=utf-8')}>
-                تنزيل الملخص
-              </button>
-              {!readonly && (
-                <button
-                  type="button"
-                  className="btn-primary"
-                  disabled={sendState === 'sending'}
-                  onClick={() => {
-                    setSendState('sending');
-                    setSendNote('جارٍ إرسال النتائج إلى جدول المعلمة');
-                    submitResults(data).then((result) => {
-                      setSendState(result.ok ? 'sent' : 'error');
-                      setSendNote(result.message);
-                    });
-                  }}
-                >
-                  {sendState === 'sent' ? 'إرسال مرة أخرى' : 'إرسال النتائج إلى المعلمة'}
-                </button>
-              )}
             </div>
-            {!readonly && sendNote && <p className={sendState === 'error' ? 'why' : 'muted'}>{sendNote}</p>}
+            {!readonly && sendNote && (
+              <p className={sendState === 'error' ? 'why no-print' : 'muted no-print'}>{sendNote}</p>
+            )}
           </header>
 
           <section className="glass section-card" style={{ ['--stage' as string]: '#38BDF8' }}>
@@ -160,18 +118,7 @@ export function Summary() {
                     </thead>
                     <tbody>
                       {section.rows.map((row) => (
-                        <Row
-                          key={`${section.stage}-${row.id}`}
-                          row={row}
-                          withQuantities={section.withQuantities}
-                          open={Boolean(open[`${section.stage}-${row.id}`])}
-                          onToggle={() =>
-                            setOpen((current) => ({
-                              ...current,
-                              [`${section.stage}-${row.id}`]: !current[`${section.stage}-${row.id}`],
-                            }))
-                          }
-                        />
+                        <Row key={`${section.stage}-${row.id}`} row={row} withQuantities={section.withQuantities} />
                       ))}
                     </tbody>
                   </table>
@@ -226,17 +173,7 @@ export function Summary() {
   );
 }
 
-function Row({
-  row,
-  withQuantities,
-  open,
-  onToggle,
-}: {
-  row: ReportRow;
-  withQuantities: boolean;
-  open: boolean;
-  onToggle: () => void;
-}) {
+function Row({ row, withQuantities }: { row: ReportRow; withQuantities: boolean }) {
   const quantityOnly = Boolean(row.quantityLabel) && row.chosen.length === 0 && row.alternatives.length === 0;
   return (
     <tr>
@@ -263,14 +200,13 @@ function Row({
         {row.alternatives.length === 0 ? (
           <span className="faint">—</span>
         ) : (
-          <>
-            <button type="button" className="btn-ghost no-print" onClick={onToggle}>
-              {open ? 'إخفاء البدائل' : 'عرض البدائل'}
-            </button>
-            <p className={open ? 'alt-list' : 'alt-list is-shut'}>
-              <TermText text={row.alternatives.join(' · ')} />
-            </p>
-          </>
+          <ul className="alt-list">
+            {row.alternatives.map((item) => (
+              <li key={item}>
+                <TermText text={item} />
+              </li>
+            ))}
+          </ul>
         )}
       </td>
     </tr>

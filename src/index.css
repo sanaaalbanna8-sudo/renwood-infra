@@ -487,10 +487,13 @@ h2 { font-size: 1.25rem; margin: 0 0 8px; }
 }
 .summary-banner h1 { color: #fff; background: none; -webkit-text-fill-color: #fff; font-size: clamp(1.5rem, 3vw, 2.2rem); }
 .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
-.actions .btn, .actions .btn-primary, .actions .btn-ghost {
-  background: rgba(255, 255, 255, 0.14);
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.28);
+.summary-banner .pdf-btn {
+  min-height: 48px;
+  padding-inline: 22px;
+  background: #fff;
+  color: #312e81;
+  border: 0;
+  font-weight: 700;
 }
 .section-card { padding: 16px; margin-top: 16px; border-inline-start: 4px solid var(--stage); }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -506,8 +509,8 @@ h2 { font-size: 1.25rem; margin: 0 0 8px; }
 .tag.warn { background: color-mix(in srgb, var(--warn) 18%, var(--card-solid)); border-color: var(--warn); }
 .tag.added { background: color-mix(in srgb, #22d3ee 16%, var(--card-solid)); }
 .tag.miss { background: color-mix(in srgb, var(--danger) 14%, var(--card-solid)); border-color: var(--danger); }
-.alt-list { color: var(--faint); margin: 8px 0 0; }
-.alt-list.is-shut { display: none; }
+.alt-list { color: var(--faint); margin: 8px 0 0; padding: 0; list-style: none; }
+.alt-list li + li { margin-top: 4px; }
 .warn-card {
   padding: 12px;
   border-radius: 16px;
@@ -661,7 +664,7 @@ h2 { font-size: 1.25rem; margin: 0 0 8px; }
   .summary-banner { background: #fff !important; color: #111 !important; border-bottom: 2px solid #111; }
   .summary-banner h1, .summary-banner p { color: #111 !important; -webkit-text-fill-color: #111 !important; }
   .summary-section { break-before: page; }
-  .alt-list, .alt-list.is-shut { display: block !important; color: #333 !important; }
+  .alt-list { display: block !important; color: #333 !important; }
   .chip, .tag { border-color: #999 !important; background: #fff !important; color: #111 !important; }
   .report-table thead { display: table-header-group !important; }
   .report-table { display: table !important; width: 100%; }
