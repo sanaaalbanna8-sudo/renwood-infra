@@ -92,19 +92,62 @@ export function buildSheetPayload(data: SaveData, date = new Date()): SheetPaylo
   };
 }
 
+const SHEETS_WEB_APP_URL =
+  'https://script.google.com/macros/s/AKfycbxAugVplZ9QGx2btrzthdwjjL7vqtERDw2MH4WpPVRIF0PIg4I20Lxqy9EjZ_K2I5QI/exec';
+
+function postThroughForm(payload: SheetPayload): Promise<{ ok: boolean; message: string }> {
+  return new Promise((resolve) => {
+    const frame = document.createElement('iframe');
+    frame.name = `renwood-sheet-${Date.now()}`;
+    frame.hidden = true;
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = SHEETS_WEB_APP_URL;
+    form.target = frame.name;
+    form.acceptCharset = 'UTF-8';
+    const field = document.createElement('input');
+    field.type = 'hidden';
+    field.name = 'payload';
+    field.value = JSON.stringify(payload);
+    form.append(field);
+    let settled = false;
+    const finish = (ok: boolean, message: string) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timer);
+      form.remove();
+      frame.remove();
+      resolve({ ok, message });
+    };
+    const timer = window.setTimeout(() => finish(false, 'تعذر الاتصال بجدول المعلمة'), 25000);
+    let loads = 0;
+    frame.onload = () => {
+      loads += 1;
+      if (loads > 1) finish(true, 'وصلت النتائج إلى جدول المعلمة');
+    };
+    document.body.append(frame, form);
+    form.submit();
+  });
+}
+
 export async function submitResults(data: SaveData): Promise<{ ok: boolean; message: string }> {
+  const body = JSON.stringify(buildSheetPayload(data));
   try {
     const response = await fetch('/api/submit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(buildSheetPayload(data)),
+      body,
     });
     const payload = (await response.json().catch(() => null)) as { ok?: boolean; message?: string } | null;
-    if (!response.ok || payload?.ok === false) {
-      return { ok: false, message: payload?.message || 'تعذر إرسال النتائج إلى جدول المعلمة' };
+    if (payload) {
+      if (!response.ok || payload.ok === false) {
+        return { ok: false, message: payload.message || 'تعذر إرسال النتائج إلى جدول المعلمة' };
+      }
+      return { ok: true, message: payload.message || 'وصلت النتائج إلى جدول المعلمة' };
     }
-    return { ok: true, message: payload?.message || 'وصلت النتائج إلى جدول المعلمة' };
   } catch {
-    return { ok: false, message: 'تعذر الاتصال بجدول المعلمة' };
+    /* The class site can also write straight to the sheet. */
   }
+  if (typeof document === 'undefined') return { ok: false, message: 'تعذر الاتصال بجدول المعلمة' };
+  return postThroughForm(JSON.parse(body) as SheetPayload);
 }

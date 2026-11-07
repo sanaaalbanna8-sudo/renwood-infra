@@ -4,9 +4,14 @@ function doGet() {
   return json({ ok: true, message: 'جاهز' });
 }
 
+function requestData(e) {
+  if (e && e.parameter && e.parameter.payload) return JSON.parse(e.parameter.payload);
+  return JSON.parse((e && e.postData && e.postData.contents) || '{}');
+}
+
 function doPost(e) {
   try {
-    const data = JSON.parse((e.postData && e.postData.contents) || '{}');
+    const data = requestData(e);
     const name = String(data.name || '').trim();
     if (name.length < 2) return json({ ok: false, message: 'الاسم ناقص' });
     data.name = name;
