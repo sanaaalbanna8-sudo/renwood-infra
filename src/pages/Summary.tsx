@@ -63,6 +63,11 @@ export function Summary() {
             {readonly ? 'العودة إلى متابعة الطلاب' : 'العودة إلى المراجعة'}
           </button>
           <span className="grow" />
+          {!readonly && (
+            <Link to="/guide" className="nav-link">
+              دليل الحل
+            </Link>
+          )}
           <button type="button" className="icon-btn" onClick={toggle} aria-label={theme === 'dark' ? 'تفعيل الوضع الفاتح' : 'تفعيل الوضع الداكن'}>
             {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
           </button>
@@ -79,6 +84,11 @@ export function Summary() {
               <button type="button" className="btn-primary pdf-btn" onClick={() => window.print()}>
                 عرض اختياراتي PDF
               </button>
+              {!readonly && (
+                <Link to="/guide" className="btn-primary pdf-btn">
+                  ابدأ دليل الحل
+                </Link>
+              )}
             </div>
             {!readonly && sendNote && (
               <p className={sendState === 'error' ? 'why no-print' : 'muted no-print'}>{sendNote}</p>

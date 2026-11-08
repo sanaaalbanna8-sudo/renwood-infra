@@ -5,7 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "predev": "npm run build-guide",
     "build": "tsc --noEmit && vite build",
+    "prebuild": "npm run build-guide",
+    "build-guide": "tsx scripts/build-guide.ts",
+    "verify-guide": "tsx scripts/verify-guide.ts",
     "preview": "vite preview",
     "test": "vitest run"
   },
@@ -23,8 +27,12 @@
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
     "@vitejs/plugin-react": "^5.1.0",
+    "remark-gfm": "^4.0.1",
+    "remark-parse": "^11.0.0",
     "tailwindcss": "^4.1.16",
+    "tsx": "^4.23.15",
     "typescript": "^5.9.3",
+    "unified": "^11.0.5",
     "vite": "^7.2.2",
     "vitest": "^4.0.6"
   }

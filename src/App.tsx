@@ -1,5 +1,7 @@
 import { createHashRouter, Navigate, RouterProvider } from 'react-router-dom';
 import { useStore } from './context/Store';
+import { GuideHome } from './pages/GuideHome';
+import { GuideStage } from './pages/GuideStage';
 import { Review } from './pages/Review';
 import { Summary } from './pages/Summary';
 import { Teacher } from './pages/Teacher';
@@ -23,6 +25,8 @@ const router = createHashRouter([
       { path: '/read', element: <Navigate to="/wizard/0/0" replace /> },
       { path: '/wizard/:stage/:index', element: <Wizard /> },
       { path: '/review', element: <Review /> },
+      { path: '/guide', element: <GuideHome /> },
+      { path: '/guide/:activity/:stage', element: <GuideStage /> },
     ],
   },
   { path: '*', element: <Navigate to="/" replace /> },

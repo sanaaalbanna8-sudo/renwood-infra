@@ -18,6 +18,16 @@ export type QuantityValue = {
   location: string;
 };
 
+export type StepMark = {
+  done: boolean;
+  at: string;
+};
+
+export type GuidePosition = {
+  activity: string;
+  stage: string;
+};
+
 export type SaveData = {
   version: 1;
   name: string;
@@ -32,6 +42,9 @@ export type SaveData = {
   priorities: Record<string, string>;
   quantities: Record<string, QuantityValue>;
   understanding: string;
+  progress: Record<string, StepMark>;
+  skipped: Record<string, string>;
+  position: GuidePosition;
 };
 
 export type StudentFile = {

@@ -1,7 +1,7 @@
 import { Moon, Sun } from 'lucide-react';
 import { flushSync } from 'react-dom';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Background } from '../components/Background';
 import { HeroArt } from '../components/HeroArt';
 import { useStore } from '../context/Store';
@@ -44,6 +44,9 @@ export function Welcome() {
         <header className="page-bar">
           <strong>مصمم البنية التحتية: رينواد تورز</strong>
           <span className="grow" />
+          <Link to="/guide" className="nav-link">
+            دليل الحل
+          </Link>
           <button type="button" className="icon-btn" onClick={toggle} aria-pressed={theme === 'light'} aria-label={theme === 'dark' ? 'تفعيل الوضع الفاتح' : 'تفعيل الوضع الداكن'}>
             {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
           </button>

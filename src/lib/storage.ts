@@ -15,6 +15,9 @@ export function emptyData(): SaveData {
     priorities: {},
     quantities: {},
     understanding: '',
+    progress: {},
+    skipped: {},
+    position: { activity: '', stage: '' },
   };
 }
 
@@ -50,6 +53,27 @@ function quantityRecord(value: unknown): Record<string, QuantityValue> {
     result[key] = { count, location };
   }
   return result;
+}
+
+function progressRecord(value: unknown): SaveData['progress'] {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  const result: SaveData['progress'] = {};
+  for (const [key, item] of Object.entries(value as Record<string, unknown>)) {
+    if (!item || typeof item !== 'object') continue;
+    const record = item as { done?: unknown; at?: unknown };
+    if (record.done !== true) continue;
+    result[key] = { done: true, at: typeof record.at === 'string' ? record.at : '' };
+  }
+  return result;
+}
+
+function guidePosition(value: unknown): SaveData['position'] {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return { activity: '', stage: '' };
+  const record = value as { activity?: unknown; stage?: unknown };
+  return {
+    activity: typeof record.activity === 'string' ? record.activity : '',
+    stage: typeof record.stage === 'string' ? record.stage : '',
+  };
 }
 
 function trimmedOther(other: Record<string, string>): Record<string, string> {
@@ -137,6 +161,9 @@ export function loadSave(): SaveData {
       quantities: parsed.quantities ?? {},
       introsSeen: parsed.introsSeen ?? [],
       understanding: parsed.understanding ?? '',
+      progress: progressRecord(parsed.progress),
+      skipped: stringRecord(parsed.skipped),
+      position: guidePosition(parsed.position),
     };
   } catch {
     return emptyData();

@@ -1,0 +1,13 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`دليل الحل > يحفظ إحصاءات المصدر ولا يسقط منه نصاً 1`] = `
+{
+  "activities": 4,
+  "checks": 21,
+  "examples": 54,
+  "rows": 191,
+  "stages": 8,
+  "steps": 97,
+  "tables": 40,
+}
+`;

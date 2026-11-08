@@ -19,7 +19,7 @@ export function Shell() {
 
   useEffect(() => {
     if (data.name.trim().length < 2) return;
-    if (location.pathname === '/' || location.pathname.startsWith('/teacher')) return;
+    if (location.pathname === '/' || location.pathname.startsWith('/teacher') || location.pathname.startsWith('/guide')) return;
     setLastPath(location.pathname);
   }, [data.name, location.pathname, setLastPath]);
 
@@ -51,6 +51,9 @@ export function Shell() {
           <Link to="/" className="brand">
             <strong>مصمم البنية التحتية</strong>
             <span>رينواد تورز</span>
+          </Link>
+          <Link to="/guide" className="nav-link">
+            دليل الحل
           </Link>
           <span className="grow" />
           <span className="who" title={data.name}>

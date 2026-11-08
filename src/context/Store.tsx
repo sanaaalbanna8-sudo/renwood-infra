@@ -16,6 +16,9 @@ type StoreValue = {
   setOther: (id: string, text: string) => void;
   setPriority: (tech: string, priority: string) => void;
   setQuantity: (label: string, patch: QuantityPatch) => void;
+  toggleStep: (stepId: string) => void;
+  skipStage: (stageId: string) => void;
+  setGuidePosition: (activity: string, stage: string) => void;
   reset: () => void;
 };
 
@@ -120,6 +123,25 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const toggleStep = useCallback((stepId: string) => {
+    setData((prev) => {
+      const progress = { ...prev.progress };
+      if (progress[stepId]?.done) delete progress[stepId];
+      else progress[stepId] = { done: true, at: new Date().toISOString() };
+      return touch({ ...prev, progress });
+    });
+  }, []);
+
+  const skipStage = useCallback((stageId: string) => {
+    setData((prev) => touch({ ...prev, skipped: { ...prev.skipped, [stageId]: new Date().toISOString() } }));
+  }, []);
+
+  const setGuidePosition = useCallback((activity: string, stage: string) => {
+    setData((prev) =>
+      prev.position.activity === activity && prev.position.stage === stage ? prev : touch({ ...prev, position: { activity, stage } }),
+    );
+  }, []);
+
   const reset = useCallback(() => setData(emptyData()), []);
 
   const value = useMemo<StoreValue>(
@@ -134,9 +156,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setOther,
       setPriority,
       setQuantity,
+      toggleStep,
+      skipStage,
+      setGuidePosition,
       reset,
     }),
-    [data, start, markIntro, setLastPath, chooseSingle, toggleMulti, setText, setOther, setPriority, setQuantity, reset],
+    [data, start, markIntro, setLastPath, chooseSingle, toggleMulti, setText, setOther, setPriority, setQuantity, toggleStep, skipStage, setGuidePosition, reset],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
