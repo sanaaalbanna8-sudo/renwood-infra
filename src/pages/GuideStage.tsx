@@ -178,7 +178,7 @@ export function GuideStage() {
     {cheerOpen && cheer
       ? createPortal(
           <div className="cheer-layer">
-            <button type="button" className="cheer-backdrop" aria-label={ar.cheerClose} onClick={closeCheer} />
+            <button type="button" className="cheer-backdrop" aria-label={cheerFinal ? ar.cheerCloseFinal : ar.cheerClose} onClick={closeCheer} />
             <section
               className={cheerFinal ? 'cheer-box is-final' : 'cheer-box'}
               role="dialog"
@@ -190,7 +190,7 @@ export function GuideStage() {
               </p>
               <p className="cheer-text">{cheer}</p>
               <button ref={cheerButton} type="button" className="btn-primary" onClick={closeCheer}>
-                {ar.cheerClose}
+                {cheerFinal ? ar.cheerCloseFinal : ar.cheerClose}
               </button>
             </section>
           </div>,

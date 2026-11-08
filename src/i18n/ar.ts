@@ -32,5 +32,6 @@ export const ar = {
   overall: 'تقدم الدليل',
   guideResume: 'تابع من حيث توقفت',
   cheerKicker: 'كلمة لك',
-  cheerClose: 'على بركة الله',
+  cheerClose: 'نكمّل الطريق',
+  cheerCloseFinal: 'إلى الفصل الثاني بكل قوة بإذن الله',
 } as const;

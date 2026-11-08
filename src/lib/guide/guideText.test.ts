@@ -24,6 +24,8 @@ describe('عرض أسطر الدليل', () => {
     expect(ar.cheers[3]).toContain('العلامة العليا');
     expect(ar.cheers[3]).toContain('مرحلة التقييم');
     expect(ar.cheers[3]).toContain('لا يضيّع تعبكم ولا جهدكم');
+    expect(ar.cheerClose).toBe('نكمّل الطريق');
+    expect(ar.cheerCloseFinal).toContain('الفصل الثاني');
   });
 
   it('يعرض جملة التأكيد داخل الخطوة بلا مربع مكرر', () => {

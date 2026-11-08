@@ -813,6 +813,11 @@ h2 { font-size: 1.25rem; margin: 0 0 8px; }
   font-weight: 700;
   line-height: 1.9;
 }
+.cheer-box .btn-primary {
+  white-space: normal;
+  line-height: 1.5;
+  text-align: center;
+}
 .guide-side-group { display: grid; gap: 4px; margin-bottom: 12px; }
 .guide-side-name { display: flex; gap: 6px; align-items: center; margin: 8px 4px; font-weight: 700; }
 .guide-side-name span { overflow-wrap: anywhere; }
