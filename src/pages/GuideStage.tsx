@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { GuideFlow } from '../components/guide/GuideFlow';
 import { ProgressRing } from '../components/ProgressRing';
@@ -15,8 +16,12 @@ export function GuideStage() {
   const { data, toggleStep, skipStage, setGuidePosition } = useStore();
   const [confirmSkip, setConfirmSkip] = useState(false);
   const [celebrating, setCelebrating] = useState(false);
+  const [cheerOpen, setCheerOpen] = useState(false);
+  const cheerButton = useRef<HTMLButtonElement>(null);
   const activityId = found?.activity.id ?? '';
   const stageId = found?.stage.id ?? '';
+  const cheer = found && activityRatio(found.activity, data.progress) === 1 ? (ar.cheers[found.activityIndex] ?? '') : '';
+  const cheerFinal = found?.activityIndex === ar.cheers.length - 1;
   useTitle(found?.stage.title ?? ar.guideTitle);
 
   useEffect(() => {
@@ -25,6 +30,38 @@ export function GuideStage() {
     setCelebrating(false);
     setConfirmSkip(false);
   }, [activityId, stageId, setGuidePosition]);
+
+  useEffect(() => {
+    if (!activityId) return;
+    const key = `renwood-cheer-${activityId}`;
+    if (!cheer) {
+      sessionStorage.removeItem(key);
+      setCheerOpen(false);
+      return;
+    }
+    if (sessionStorage.getItem(key) === '1') {
+      setCheerOpen(false);
+      return;
+    }
+    setCheerOpen(true);
+  }, [activityId, cheer]);
+
+  useEffect(() => {
+    if (!cheerOpen) return;
+    cheerButton.current?.focus();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      sessionStorage.setItem(`renwood-cheer-${activityId}`, '1');
+      setCheerOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [cheerOpen, activityId]);
+
+  function closeCheer() {
+    if (activityId) sessionStorage.setItem(`renwood-cheer-${activityId}`, '1');
+    setCheerOpen(false);
+  }
 
   if (!found) return <Navigate to="/guide" replace />;
 
@@ -37,9 +74,9 @@ export function GuideStage() {
   const next = neighbor(found, 1);
   const lastInActivity = !next || next.activity.id !== activity.id;
   const criteria = stageCriteria(stage);
-  const cheer = activityRatio(activity, data.progress) === 1 ? ar.cheers[activityIndex] : '';
 
   return (
+    <>
     <div className="guide-page" style={{ ['--stage' as string]: theme.color }}>
       <header className="guide-head">
         <div>
@@ -70,7 +107,6 @@ export function GuideStage() {
       {celebrating ? (
         <section className="glass guide-done">
           <h2>{ar.activityDone}</h2>
-          {cheer ? <p className={activityIndex === ar.cheers.length - 1 ? 'guide-cheer is-final' : 'guide-cheer'}>{cheer}</p> : null}
           <p>
             {ar.outcomeLabel}: {activity.outcome}
           </p>
@@ -86,11 +122,6 @@ export function GuideStage() {
         </section>
       ) : (
         <>
-          {cheer ? (
-            <p className={activityIndex === ar.cheers.length - 1 ? 'guide-cheer is-final' : 'guide-cheer'} role="status">
-              {cheer}
-            </p>
-          ) : null}
           <GuideFlow flow={stage.flow} progress={data.progress} onToggle={toggleStep} />
           <div className="pager">
             {previous ? (
@@ -144,5 +175,28 @@ export function GuideStage() {
         </>
       )}
     </div>
+    {cheerOpen && cheer
+      ? createPortal(
+          <div className="cheer-layer">
+            <button type="button" className="cheer-backdrop" aria-label={ar.cheerClose} onClick={closeCheer} />
+            <section
+              className={cheerFinal ? 'cheer-box is-final' : 'cheer-box'}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="cheer-kicker"
+            >
+              <p className="cheer-kicker" id="cheer-kicker">
+                {ar.cheerKicker}
+              </p>
+              <p className="cheer-text">{cheer}</p>
+              <button ref={cheerButton} type="button" className="btn-primary" onClick={closeCheer}>
+                {ar.cheerClose}
+              </button>
+            </section>
+          </div>,
+          document.body,
+        )
+      : null}
+    </>
   );
 }

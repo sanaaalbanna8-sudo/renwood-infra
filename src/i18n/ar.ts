@@ -31,4 +31,6 @@ export const ar = {
   stepsDone: 'الخطوات المؤشرة',
   overall: 'تقدم الدليل',
   guideResume: 'تابع من حيث توقفت',
+  cheerKicker: 'كلمة لك',
+  cheerClose: 'قرأتها، وسأكمل',
 } as const;
