@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { activityRatio, countedSteps, guide, stageRatio } from './catalog';
-import { canCopyTable, emptyFrame, isGuidanceTable, isReportTable } from './copyTable';
+import { canCopyTable, emptyFrame, isGuidanceTable } from './copyTable';
 import type { FlowItem, TextBlock } from './parseGuide';
 import type { SaveData } from '../types';
 
@@ -40,8 +40,7 @@ describe('نسخ إطار الجدول', () => {
     const guidance = tables.filter((table) => table.type === 'table' && isGuidanceTable(table));
     expect(guidance).toHaveLength(3);
     const report = tables.find((table) => table.type === 'table' && table.rows[0]?.cells.some((cell) => cell.startsWith('البرنامج')));
-    expect(report && report.type === 'table' && isReportTable(report)).toBe(true);
-    expect(report && report.type === 'table' && canCopyTable(report)).toBe(false);
+    expect(report && report.type === 'table' && canCopyTable(report)).toBe(true);
   });
 });
 

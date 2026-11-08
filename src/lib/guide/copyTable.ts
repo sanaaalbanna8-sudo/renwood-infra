@@ -15,13 +15,8 @@ export function isGuidanceTable(table: FrameTable): boolean {
   return table.rows.some((row) => row.cells.some((cell) => cell.includes('السؤال الذي يوجهك')));
 }
 
-/** جدول التقرير فيه مثال أو خلية يملؤها الطالب. يُعرض ولا يُنسخ. */
-export function isReportTable(table: FrameTable): boolean {
-  return table.rows.slice(1).some((row) => row.example || row.cells.some((cell) => cell.startsWith('[')));
-}
-
 export function canCopyTable(table: FrameTable): boolean {
-  return !isGuidanceTable(table) && !isReportTable(table);
+  return !isGuidanceTable(table);
 }
 
 /** إطار فارغ: صف العناوين ثم صفوف وسطها فارغ بعدد صفوف الجدول. */
