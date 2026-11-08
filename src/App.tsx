@@ -29,5 +29,12 @@ const router = createHashRouter([
 ]);
 
 export function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <>
+      <RouterProvider router={router} />
+      <p className="site-rights" lang="en" dir="ltr">
+        © Sanaa Albanna. All rights reserved.
+      </p>
+    </>
+  );
 }
