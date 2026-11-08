@@ -19,6 +19,8 @@ describe('عرض أسطر الدليل', () => {
 
   it('يضع رسالة لكل نشاط، والأخيرة عن العلامة العليا ومرحلة التقييم', () => {
     expect(ar.cheers).toHaveLength(guide.activities.length);
+    expect(ar.cheers[3]).toContain('الوزن الأكبر');
+    expect(ar.cheers[3]).toContain('السنة الأخيرة');
     expect(ar.cheers[3]).toContain('العلامة العليا');
     expect(ar.cheers[3]).toContain('مرحلة التقييم');
     expect(ar.cheers[3]).toContain('لا يضيّع تعبكم ولا جهدكم');
