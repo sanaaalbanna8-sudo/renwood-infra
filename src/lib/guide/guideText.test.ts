@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { visibleCheck, visibleItem } from './guideText';
+import { visibleCheck, visibleItem, visibleListItem } from './guideText';
 
 describe('عرض أسطر الدليل', () => {
   it('يبقي جملة عنصر القائمة ويترك علامة المصدر للقائمة', () => {
@@ -13,5 +13,9 @@ describe('عرض أسطر الدليل', () => {
       'لكل صف في جدول الاحتياجات قرار، ولكل قرار بديل مرفوض.',
     );
     expect(visibleCheck('الخطوة 1: جدول الاحتياجات')).toBe('الخطوة 1: جدول الاحتياجات');
+  });
+
+  it('يعرض جملة التأكيد داخل الخطوة بلا مربع مكرر', () => {
+    expect(visibleListItem('• ☐ لكل قطعة كمية وموقع.')).toBe('لكل قطعة كمية وموقع.');
   });
 });

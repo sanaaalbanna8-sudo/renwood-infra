@@ -1,6 +1,6 @@
 import { Check } from 'lucide-react';
 import { ar } from '../../i18n/ar';
-import { visibleCheck, visibleItem } from '../../lib/guide/guideText';
+import { visibleCheck, visibleListItem } from '../../lib/guide/guideText';
 import type { FlowItem, TextBlock } from '../../lib/guide/parseGuide';
 import type { SaveData } from '../../lib/types';
 import { GuideTable } from './GuideTable';
@@ -14,7 +14,7 @@ function Blocks({ blocks }: { blocks: TextBlock[] }) {
           return (
             <ul key={index} className="guide-list">
               {block.items.map((item, itemIndex) => (
-                <li key={`${itemIndex}-${item}`}>{visibleItem(item)}</li>
+                <li key={`${itemIndex}-${item}`}>{visibleListItem(item)}</li>
               ))}
             </ul>
           );

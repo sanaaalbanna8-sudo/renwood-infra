@@ -225,6 +225,16 @@ function tableBlock(table: Table): TextBlock {
   return { type: 'table', rows };
 }
 
+function confirmLeafOpen(bucket: Bucket): boolean {
+  if (!bucket.leafId) return false;
+  for (let index = bucket.flow.length - 1; index >= 0; index -= 1) {
+    const item = bucket.flow[index];
+    if (item?.type !== 'step' || item.step.id !== bucket.leafId) continue;
+    return item.step.title.startsWith('تأكد قبل الانتقال') || item.step.title.startsWith('تأكد قبل التسليم');
+  }
+  return false;
+}
+
 function consumeList(bucket: Bucket, list: List, slug: (title: string) => string) {
   let pending: string[] = [];
   const flush = () => {
@@ -234,7 +244,7 @@ function consumeList(bucket: Bucket, list: List, slug: (title: string) => string
   };
   for (const item of list.children) {
     const text = listItemText(item);
-    if (isCheckLine(text)) {
+    if (isCheckLine(text) && !confirmLeafOpen(bucket)) {
       flush();
       pushStep(bucket, {
         id: slug(text),

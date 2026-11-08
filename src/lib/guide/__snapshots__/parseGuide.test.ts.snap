@@ -3,11 +3,11 @@
 exports[`دليل الحل > يحفظ إحصاءات المصدر ولا يسقط منه نصاً 1`] = `
 {
   "activities": 4,
-  "checks": 21,
+  "checks": 10,
   "examples": 54,
   "rows": 191,
   "stages": 8,
-  "steps": 97,
+  "steps": 86,
   "tables": 40,
 }
 `;
