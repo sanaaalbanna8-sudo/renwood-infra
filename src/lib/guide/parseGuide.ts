@@ -182,6 +182,15 @@ function makeSlugger() {
   };
 }
 
+function sectionStep(bucket: Bucket) {
+  if (!bucket.sectionId) return undefined;
+  for (let index = bucket.flow.length - 1; index >= 0; index -= 1) {
+    const item = bucket.flow[index];
+    if (item?.type === 'step' && item.step.id === bucket.sectionId && item.step.role === 'section') return item.step;
+  }
+  return undefined;
+}
+
 function appendBody(bucket: Bucket, stepId: string, blocks: TextBlock[]) {
   if (!blocks.length) return;
   const last = bucket.flow[bucket.flow.length - 1];
@@ -310,7 +319,9 @@ function consumeFlow(nodes: Content[], slug: (title: string) => string): { flow:
       if (!text) continue;
       if (isInfoLine(text)) {
         bucket.leafId = null;
-        bucket.flow.push({ type: 'info', body: [{ type: 'p', text }] });
+        const section = sectionStep(bucket);
+        if (section) section.body.push({ type: 'p', text });
+        else bucket.flow.push({ type: 'info', body: [{ type: 'p', text }] });
         continue;
       }
       bucket.leafId = null;
