@@ -15,8 +15,14 @@ export function isGuidanceTable(table: FrameTable): boolean {
   return table.rows.some((row) => row.cells.some((cell) => cell.includes('السؤال الذي يوجهك')));
 }
 
+/** جدول «مسار التقرير»: القسم وما يغطيه والمعيار. يُعرض ولا يُنسخ. */
+export function isReportPathTable(table: FrameTable): boolean {
+  const header = table.rows[0]?.cells ?? [];
+  return header[0] === 'القسم' && header.includes('ما يغطيه من الواجب');
+}
+
 export function canCopyTable(table: FrameTable): boolean {
-  return !isGuidanceTable(table);
+  return !isGuidanceTable(table) && !isReportPathTable(table);
 }
 
 /** إطار فارغ: صف العناوين ثم صفوف وسطها فارغ بعدد صفوف الجدول. */
