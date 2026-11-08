@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { ar } from '../../i18n/ar';
-import { emptyFrame, type FrameTable } from '../../lib/guide/copyTable';
+import { emptyFrame, isGuidanceTable, type FrameTable } from '../../lib/guide/copyTable';
 
 export function GuideTable({ table }: { table: FrameTable }) {
   const [copied, setCopied] = useState(false);
   const header = table.rows[0]?.cells.length ?? 0;
+  const guidance = isGuidanceTable(table);
 
   async function copy() {
     const frame = emptyFrame(table);
@@ -56,7 +57,7 @@ export function GuideTable({ table }: { table: FrameTable }) {
           </tbody>
         </table>
       </div>
-      {header > 0 && (
+      {header > 0 && !guidance && (
         <div className="guide-copy no-print">
           <button type="button" className="btn-ghost" onClick={() => void copy()}>
             {copied ? ar.copied : ar.copyFrame}

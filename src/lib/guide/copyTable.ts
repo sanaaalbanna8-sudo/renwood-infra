@@ -10,6 +10,11 @@ function escapeHtml(value: string): string {
     .replace(/"/g, '&quot;');
 }
 
+/** جدول التوجيه فيه «السؤال الذي يوجهك». يُعرض ولا يُنسخ، لأن الطالب لا يلصقه في التقرير. */
+export function isGuidanceTable(table: FrameTable): boolean {
+  return table.rows.some((row) => row.cells.some((cell) => cell.includes('السؤال الذي يوجهك')));
+}
+
 /** إطار فارغ: صف العناوين ثم صفوف وسطها فارغ بعدد صفوف الجدول. */
 export function emptyFrame(table: FrameTable): { html: string; text: string } {
   const header = table.rows[0]?.cells ?? [];

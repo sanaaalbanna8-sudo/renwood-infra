@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { activityRatio, countedSteps, guide, stageRatio } from './catalog';
-import { emptyFrame } from './copyTable';
+import { emptyFrame, isGuidanceTable } from './copyTable';
+import type { FlowItem, TextBlock } from './parseGuide';
 import type { SaveData } from '../types';
 
 describe('نسخ إطار الجدول', () => {
@@ -21,6 +22,25 @@ describe('نسخ إطار الجدول', () => {
     expect(frame.html).toContain('border:1px solid #000000');
     expect(frame.html.match(/<td /g)?.length).toBe(4);
     expect(frame.html).not.toContain('مثال');
+  });
+
+  it('لا يجعل جدول السؤال الذي يوجهك قابلاً للنسخ', () => {
+    const tables: TextBlock[] = [];
+    const take = (blocks: TextBlock[]) => {
+      for (const block of blocks) if (block.type === 'table') tables.push(block);
+    };
+    const walk = (flow: FlowItem[]) => {
+      for (const item of flow) {
+        if (item.type === 'step') take(item.step.body);
+        else take(item.body);
+      }
+    };
+    walk(guide.intro);
+    for (const activity of guide.activities) for (const stage of activity.stages) walk(stage.flow);
+    const guidance = tables.filter((table) => table.type === 'table' && isGuidanceTable(table));
+    expect(guidance).toHaveLength(3);
+    const report = tables.find((table) => table.type === 'table' && table.rows[0]?.cells.some((cell) => cell.startsWith('البرنامج')));
+    expect(report && report.type === 'table' && isGuidanceTable(report)).toBe(false);
   });
 });
 
