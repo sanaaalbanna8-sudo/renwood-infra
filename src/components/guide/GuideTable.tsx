@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { ar } from '../../i18n/ar';
 import { canCopyTable, emptyFrame, type FrameTable } from '../../lib/guide/copyTable';
 
-export function GuideTable({ table }: { table: FrameTable }) {
+export function GuideTable({ table, copyTables = true }: { table: FrameTable; copyTables?: boolean }) {
   const [copied, setCopied] = useState(false);
   const header = table.rows[0]?.cells.length ?? 0;
-  const copyable = canCopyTable(table);
+  const copyable = copyTables && canCopyTable(table);
 
   async function copy() {
     const frame = emptyFrame(table);

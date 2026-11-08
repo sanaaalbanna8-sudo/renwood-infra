@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { activityRatio, countedSteps, guide, stageRatio } from './catalog';
-import { canCopyTable, emptyFrame, isGuidanceTable, isReportPathTable } from './copyTable';
+import { canCopyTable, emptyFrame, isGuidanceTable, isPrepStage, isReportPathTable } from './copyTable';
 import type { FlowItem, TextBlock } from './parseGuide';
 import type { SaveData } from '../types';
 
@@ -44,6 +44,18 @@ describe('نسخ إطار الجدول', () => {
     const paths = tables.filter((table) => table.type === 'table' && isReportPathTable(table));
     expect(paths).toHaveLength(3);
     expect(paths.every((table) => table.type === 'table' && !canCopyTable(table))).toBe(true);
+    const prep = guide.activities.flatMap((activity) => activity.stages.filter((stage) => isPrepStage(stage.tag)));
+    expect(prep).toHaveLength(4);
+    const prepTables: TextBlock[] = [];
+    for (const stage of prep) {
+      for (const item of stage.flow) {
+        const blocks = item.type === 'step' ? item.step.body : item.body;
+        for (const block of blocks) if (block.type === 'table') prepTables.push(block);
+      }
+    }
+    expect(prepTables).toHaveLength(7);
+    const needs = prepTables.find((table) => table.type === 'table' && table.rows[0]?.cells[0]?.startsWith('المهمة أو المتطلب'));
+    expect(needs && needs.type === 'table' && canCopyTable(needs)).toBe(true);
   });
 });
 

@@ -7,6 +7,7 @@ import { themeFor } from '../data/guideTheme';
 import { useStore } from '../context/Store';
 import { ar } from '../i18n/ar';
 import { activityRatio, countedSteps, findStage, neighbor, partOneReady, stageCriteria, stagePath, stageRatio } from '../lib/guide/catalog';
+import { isPrepStage } from '../lib/guide/copyTable';
 import { useTitle } from '../lib/useTitle';
 
 export function GuideStage() {
@@ -122,7 +123,7 @@ export function GuideStage() {
         </section>
       ) : (
         <>
-          <GuideFlow flow={stage.flow} progress={data.progress} onToggle={toggleStep} />
+          <GuideFlow flow={stage.flow} progress={data.progress} onToggle={toggleStep} copyTables={!isPrepStage(stage.tag)} />
           <div className="pager">
             {previous ? (
               <Link to={stagePath(previous.activity.id, previous.stage.id)} className="btn-ghost">

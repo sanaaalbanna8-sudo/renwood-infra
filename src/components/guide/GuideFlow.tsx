@@ -5,7 +5,7 @@ import type { FlowItem, TextBlock } from '../../lib/guide/parseGuide';
 import type { SaveData } from '../../lib/types';
 import { GuideTable } from './GuideTable';
 
-function Blocks({ blocks }: { blocks: TextBlock[] }) {
+function Blocks({ blocks, copyTables }: { blocks: TextBlock[]; copyTables: boolean }) {
   return (
     <>
       {blocks.map((block, index) => {
@@ -19,7 +19,7 @@ function Blocks({ blocks }: { blocks: TextBlock[] }) {
             </ul>
           );
         }
-        return <GuideTable key={index} table={block} />;
+        return <GuideTable key={index} table={block} copyTables={copyTables} />;
       })}
     </>
   );
@@ -29,10 +29,12 @@ export function GuideFlow({
   flow,
   progress,
   onToggle,
+  copyTables = true,
 }: {
   flow: FlowItem[];
   progress: SaveData['progress'];
   onToggle: (stepId: string) => void;
+  copyTables?: boolean;
 }) {
   return (
     <div className="guide-flow">
@@ -40,14 +42,14 @@ export function GuideFlow({
         if (item.type === 'info') {
           return (
             <section key={`info-${index}`} className="guide-info">
-              <Blocks blocks={item.body} />
+              <Blocks blocks={item.body} copyTables={copyTables} />
             </section>
           );
         }
         if (item.type === 'more') {
           return (
             <div key={`more-${item.stepId}-${index}`} className="guide-more">
-              <Blocks blocks={item.body} />
+              <Blocks blocks={item.body} copyTables={copyTables} />
             </div>
           );
         }
@@ -65,7 +67,7 @@ export function GuideFlow({
                 {item.step.optional ? <span className="chip">{ar.optional}</span> : null}
               </h3>
               <div className="guide-step-body">
-                <Blocks blocks={item.step.body} />
+                <Blocks blocks={item.step.body} copyTables={copyTables} />
               </div>
             </div>
           </article>

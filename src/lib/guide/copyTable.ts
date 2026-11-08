@@ -21,6 +21,11 @@ export function isReportPathTable(table: FrameTable): boolean {
   return header[0] === 'القسم' && header.includes('ما يغطيه من الواجب');
 }
 
+/** المرحلة 1 مسودة قبل التسليم، وجداولها لا تُنسخ إلى التقرير. */
+export function isPrepStage(tag: string): boolean {
+  return tag === 'قبل الكتابة';
+}
+
 export function canCopyTable(table: FrameTable): boolean {
   return !isGuidanceTable(table) && !isReportPathTable(table);
 }
