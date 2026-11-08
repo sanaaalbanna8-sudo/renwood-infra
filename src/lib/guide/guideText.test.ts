@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { ar } from '../../i18n/ar';
 import { guide } from './catalog';
 import { visibleCheck, visibleItem, visibleListItem } from './guideText';
+import { partOneHint } from './partOneHint';
 import { isReportWork } from './reportWork';
 
 describe('عرض أسطر الدليل', () => {
@@ -49,5 +50,18 @@ describe('عرض أسطر الدليل', () => {
     const section = steps.find((step) => step.title.startsWith('القسم 1: البرمجيات'));
     expect(guidance?.type).toBe('more');
     expect(section && guidance?.type === 'more' && guidance.stepId === section.id && !isReportWork(section)).toBe(true);
+  });
+
+  it('يذكّر بما اختير في الجزء الأول ولا ينسب إليه البديل أو المعايير', () => {
+    expect(partOneHint('الخطوة 1: جدول الاحتياجات')).toBe('needsDecision');
+    expect(partOneHint('الخطوة 3: افتح سجل القرارات')).toBe('decisionLog');
+    expect(partOneHint('الخطوة 4: حدد الكميات والمواقع')).toBe('quantities');
+    expect(partOneHint('• ☐ لكل بند كمية وموقع ومستفيد.')).toBe('quantityCheck');
+    expect(partOneHint('• ☐ غطيت المقهى ومتجر الهدايا ومنطقة الانتظار وسيارة الطوارئ.')).toBe('placesCheck');
+    expect(partOneHint('الخطوة 2: حدد معايير الاختيار')).toBeNull();
+    expect(partOneHint('• ☐ لكل صف في جدول الاحتياجات قرار، ولكل قرار بديل مرفوض.')).toBeNull();
+    expect(partOneHint('• ☐ حددتُ أصحاب المصلحة الذين ستحلل أثر بنيتك عليهم (انظر القسم 4).')).toBeNull();
+    expect(ar.partOneHints.needsDecision).toContain('قرارك التقني');
+    expect(ar.partOneHints.needsDecision).toContain('البديل');
   });
 });

@@ -760,6 +760,14 @@ h2 { font-size: 1.25rem; margin: 0 0 8px; }
 .guide-step.is-done .guide-step-label { text-decoration: line-through; text-decoration-thickness: 2px; }
 .guide-step-title { margin: 0 0 8px; font-size: 1.05rem; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .guide-step-body p, .guide-info p, .guide-more p { margin: 0 0 8px; }
+.guide-prior {
+  margin: 0 0 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-weight: 700;
+  background: color-mix(in srgb, var(--stage, #6366f1) 16%, var(--card-solid));
+  border: 1px solid color-mix(in srgb, var(--stage, #6366f1) 45%, var(--line));
+}
 .guide-box {
   width: 44px;
   height: 44px;

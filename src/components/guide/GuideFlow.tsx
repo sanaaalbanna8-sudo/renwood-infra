@@ -1,6 +1,7 @@
 import { Check } from 'lucide-react';
 import { ar } from '../../i18n/ar';
 import { visibleCheck, visibleListItem } from '../../lib/guide/guideText';
+import { partOneHint } from '../../lib/guide/partOneHint';
 import { isReportWork } from '../../lib/guide/reportWork';
 import type { FlowItem, GuideStep, TextBlock } from '../../lib/guide/parseGuide';
 import type { SaveData } from '../../lib/types';
@@ -58,6 +59,7 @@ export function GuideFlow({
         }
         const done = Boolean(progress[item.step.id]?.done);
         const report = isReportWork(item.step);
+        const prior = partOneHint(item.step.title);
         const title = item.step.check ? visibleCheck(item.step.title) : item.step.title;
         const titleId = `guide-step-${item.step.id}`;
         return (
@@ -72,6 +74,7 @@ export function GuideFlow({
                 {item.step.optional ? <span className="chip">{ar.optional}</span> : null}
               </h3>
               <div className="guide-step-body">
+                {prior ? <p className="guide-prior">{ar.partOneHints[prior]}</p> : null}
                 <Blocks blocks={item.step.body} copyTables={copyTables} />
               </div>
             </div>
