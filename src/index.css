@@ -734,8 +734,28 @@ h2 { font-size: 1.25rem; margin: 0 0 8px; }
   border-radius: 16px;
   background: var(--card);
 }
+.guide-info.is-guide,
+.guide-more.is-guide,
+.guide-step.is-guide {
+  background: color-mix(in srgb, #64748b 12%, var(--card));
+  border-style: dashed;
+  border-color: color-mix(in srgb, #64748b 55%, var(--line));
+}
+.guide-more.is-report,
+.guide-step.is-report {
+  background: color-mix(in srgb, #b45309 16%, var(--card-solid));
+  border-style: solid;
+  border-color: color-mix(in srgb, #b45309 72%, var(--line));
+  border-inline-start: 4px solid #b45309;
+}
 .guide-step { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; align-items: start; }
 .guide-step.is-done { background: color-mix(in srgb, #10b981 14%, var(--card-solid)); }
+.guide-step.is-report.is-done { border-inline-start-color: #b45309; }
+.chip-report {
+  background: #b45309;
+  color: #fff;
+  border-color: #b45309;
+}
 .guide-step-label { min-width: 0; overflow-wrap: anywhere; }
 .guide-step.is-done .guide-step-label { text-decoration: line-through; text-decoration-thickness: 2px; }
 .guide-step-title { margin: 0 0 8px; font-size: 1.05rem; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }

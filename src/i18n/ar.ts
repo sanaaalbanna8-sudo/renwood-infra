@@ -26,6 +26,7 @@ export const ar = {
   copyHint: 'يُلصق في وورد جدولاً بإطاره وعناوينه، والخلايا الوسطى فارغة لتكتبها.',
   exampleBadge: 'مثال',
   optional: 'اختيارية',
+  inReport: 'في التقرير',
   skipped: 'تم التخطي',
   stageOf: 'مرحلة',
   stepsDone: 'الخطوات المؤشرة',
