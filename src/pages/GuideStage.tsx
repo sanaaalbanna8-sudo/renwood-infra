@@ -5,7 +5,7 @@ import { ProgressRing } from '../components/ProgressRing';
 import { themeFor } from '../data/guideTheme';
 import { useStore } from '../context/Store';
 import { ar } from '../i18n/ar';
-import { countedSteps, findStage, neighbor, partOneReady, stageCriteria, stagePath, stageRatio } from '../lib/guide/catalog';
+import { activityRatio, countedSteps, findStage, neighbor, partOneReady, stageCriteria, stagePath, stageRatio } from '../lib/guide/catalog';
 import { useTitle } from '../lib/useTitle';
 
 export function GuideStage() {
@@ -37,6 +37,7 @@ export function GuideStage() {
   const next = neighbor(found, 1);
   const lastInActivity = !next || next.activity.id !== activity.id;
   const criteria = stageCriteria(stage);
+  const cheer = activityRatio(activity, data.progress) === 1 ? ar.cheers[activityIndex] : '';
 
   return (
     <div className="guide-page" style={{ ['--stage' as string]: theme.color }}>
@@ -69,6 +70,7 @@ export function GuideStage() {
       {celebrating ? (
         <section className="glass guide-done">
           <h2>{ar.activityDone}</h2>
+          {cheer ? <p className={activityIndex === ar.cheers.length - 1 ? 'guide-cheer is-final' : 'guide-cheer'}>{cheer}</p> : null}
           <p>
             {ar.outcomeLabel}: {activity.outcome}
           </p>
@@ -84,6 +86,11 @@ export function GuideStage() {
         </section>
       ) : (
         <>
+          {cheer ? (
+            <p className={activityIndex === ar.cheers.length - 1 ? 'guide-cheer is-final' : 'guide-cheer'} role="status">
+              {cheer}
+            </p>
+          ) : null}
           <GuideFlow flow={stage.flow} progress={data.progress} onToggle={toggleStep} />
           <div className="pager">
             {previous ? (

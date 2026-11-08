@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { ar } from '../../i18n/ar';
+import { guide } from './catalog';
 import { visibleCheck, visibleItem, visibleListItem } from './guideText';
 
 describe('عرض أسطر الدليل', () => {
@@ -13,6 +15,13 @@ describe('عرض أسطر الدليل', () => {
       'لكل صف في جدول الاحتياجات قرار، ولكل قرار بديل مرفوض.',
     );
     expect(visibleCheck('الخطوة 1: جدول الاحتياجات')).toBe('الخطوة 1: جدول الاحتياجات');
+  });
+
+  it('يضع رسالة لكل نشاط، والأخيرة عن العلامة العليا ومرحلة التقييم', () => {
+    expect(ar.cheers).toHaveLength(guide.activities.length);
+    expect(ar.cheers[3]).toContain('العلامة العليا');
+    expect(ar.cheers[3]).toContain('مرحلة التقييم');
+    expect(ar.cheers[3]).toContain('لا يضيّع تعبكم ولا جهدكم');
   });
 
   it('يعرض جملة التأكيد داخل الخطوة بلا مربع مكرر', () => {
