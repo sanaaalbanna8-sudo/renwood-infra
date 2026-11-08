@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import source from '../../../content/guide.md?raw';
-import { diffAtoms, guideStats, parseGuide } from './parseGuide';
+import { diffAtoms, guideStats, isWriteTitle, parseGuide } from './parseGuide';
 
 describe('دليل الحل', () => {
   it('يحفظ إحصاءات المصدر ولا يسقط منه نصاً', () => {
@@ -48,5 +48,27 @@ describe('دليل الحل', () => {
       ),
     );
     expect(loose).toBe(false);
+  });
+
+  it('يضع مربعاً على ما يُكتب في التقرير ويبقي أسئلة التوجيه بلا مربع', () => {
+    const doc = parseGuide(source);
+    const stage = doc.activities[0]?.stages[1];
+    const software = stage?.flow.find((item) => item.type === 'step' && item.step.title === 'جدول البرمجيات');
+    expect(software?.type).toBe('step');
+    if (software?.type !== 'step') return;
+    expect(software.step.role).toBe('write');
+    expect(software.step.body.some((block) => block.type === 'table' && block.rows[0]?.cells[0]?.startsWith('البرنامج'))).toBe(true);
+    expect(software.step.body.some((block) => block.type === 'p' && block.text.includes('السؤال الذي يوجهك'))).toBe(false);
+    const guidanceStep = stage?.flow.some((item) => item.type === 'step' && item.step.title.startsWith('ما يجب أن تغطيه'));
+    expect(guidanceStep).toBe(false);
+    const guidanceKept = stage?.flow.some(
+      (item) =>
+        item.type !== 'step' &&
+        item.body.some((block) => block.type === 'p' && block.text.startsWith('ما يجب أن تغطيه اختياراتك من البرامج')),
+    );
+    expect(guidanceKept).toBe(true);
+    const titles = doc.activities.flatMap((activity) => activity.stages.flatMap((item) => item.flow.flatMap((block) => (block.type === 'step' ? [block.step.title] : []))));
+    expect(titles.filter((title) => isWriteTitle(title))).toHaveLength(21);
+    expect(titles.some((title) => title.startsWith('مستويات المؤسسة') || title.startsWith('ما يظهر في جدول التحليل'))).toBe(false);
   });
 });

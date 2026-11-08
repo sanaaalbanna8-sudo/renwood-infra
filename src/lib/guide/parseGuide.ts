@@ -13,7 +13,7 @@ export type GuideStep = {
   title: string;
   optional: boolean;
   check: boolean;
-  role: 'section' | 'leaf' | 'check';
+  role: 'section' | 'leaf' | 'check' | 'write';
   body: TextBlock[];
 };
 
@@ -61,10 +61,25 @@ const SECTION =
 
 const LEAF = /^(?:فقرة البداية|فقرة الختام|توصية اختيارية|تأكد قبل الانتقال|تأكد قبل التسليم)/;
 
+/** عنوان ما يكتبه الطالب في التقرير. أسئلة التوجيه ليست منه. */
+export function isWriteTitle(line: string): boolean {
+  if (line.startsWith('جدول ')) return true;
+  return (
+    line === 'أثر البنية على الشركة' ||
+    line === 'أثر البنية على أصحاب المصلحة' ||
+    line === 'الموازنة' ||
+    line === 'وزن الأثر' ||
+    line === 'التوصيات' ||
+    line.startsWith('الطرق البديلة') ||
+    line.startsWith('تقييم الأثر') ||
+    line.startsWith('تقييم وثيقة السياسات')
+  );
+}
+
 function headingLevel(line: string): 1 | 2 | 3 | 0 {
   if (line.startsWith('خطة ')) return 1;
   if (line.startsWith('المرحلة ')) return 2;
-  if (line.startsWith('الخاتمة والحكم النهائي') || SECTION.test(line) || LEAF.test(line)) return 3;
+  if (line.startsWith('الخاتمة والحكم النهائي') || SECTION.test(line) || LEAF.test(line) || isWriteTitle(line)) return 3;
   return 0;
 }
 
@@ -141,10 +156,6 @@ function stageTag(title: string): string {
   return '';
 }
 
-function isSectionTitle(title: string): boolean {
-  return SECTION.test(title);
-}
-
 function isLeafTitle(title: string): boolean {
   return LEAF.test(title);
 }
@@ -161,6 +172,7 @@ type Bucket = {
   flow: FlowItem[];
   sectionId: string | null;
   leafId: string | null;
+  writeId: string | null;
 };
 
 function makeSlugger() {
@@ -206,7 +218,7 @@ function appendBody(bucket: Bucket, stepId: string, blocks: TextBlock[]) {
 }
 
 function addContent(bucket: Bucket, blocks: TextBlock[], preferLeaf: boolean) {
-  const stepId = preferLeaf && bucket.leafId ? bucket.leafId : bucket.sectionId;
+  const stepId = (preferLeaf && bucket.leafId) || bucket.writeId || bucket.sectionId;
   if (!stepId) {
     bucket.flow.push({ type: 'info', body: blocks });
     return;
@@ -219,8 +231,13 @@ function pushStep(bucket: Bucket, step: GuideStep) {
   if (step.role === 'section') {
     bucket.sectionId = step.id;
     bucket.leafId = null;
+    bucket.writeId = null;
+  } else if (step.role === 'write') {
+    bucket.writeId = step.id;
+    bucket.leafId = step.id;
   } else if (step.role === 'leaf') {
     bucket.leafId = step.id;
+    if (!step.optional) bucket.writeId = null;
   } else {
     bucket.leafId = null;
   }
@@ -277,12 +294,12 @@ function listItemText(item: ListItem): string {
 function consumeFlow(nodes: Content[], slug: (title: string) => string): { flow: FlowItem[]; stages: GuideStage[]; activities: GuideActivity[] } {
   const intro: FlowItem[] = [];
   const activities: GuideActivity[] = [];
-  let bucket: Bucket = { flow: intro, sectionId: null, leafId: null };
+  let bucket: Bucket = { flow: intro, sectionId: null, leafId: null, writeId: null };
   let activity: GuideActivity | null = null;
   let stage: GuideStage | null = null;
 
   const openBucket = (flow: FlowItem[]) => {
-    bucket = { flow, sectionId: null, leafId: null };
+    bucket = { flow, sectionId: null, leafId: null, writeId: null };
   };
 
   for (const node of nodes) {
@@ -303,7 +320,7 @@ function consumeFlow(nodes: Content[], slug: (title: string) => string): { flow:
     }
     if (node.type === 'heading' && node.depth === 3) {
       const title = plain(node).replace(/\s+/g, ' ').trim();
-      const role = isLeafTitle(title) ? 'leaf' : isSectionTitle(title) ? 'section' : 'section';
+      const role = isLeafTitle(title) ? 'leaf' : isWriteTitle(title) ? 'write' : 'section';
       pushStep(bucket, {
         id: slug(title),
         title,
@@ -324,6 +341,14 @@ function consumeFlow(nodes: Content[], slug: (title: string) => string): { flow:
         else bucket.flow.push({ type: 'info', body: [{ type: 'p', text }] });
         continue;
       }
+      if (bucket.writeId && bucket.leafId === bucket.writeId) {
+        addContent(bucket, [{ type: 'p', text }], true);
+        continue;
+      }
+      if (bucket.writeId && bucket.leafId) {
+        addContent(bucket, [{ type: 'p', text }], false);
+        continue;
+      }
       bucket.leafId = null;
       addContent(bucket, [{ type: 'p', text }], false);
       continue;
@@ -333,7 +358,7 @@ function consumeFlow(nodes: Content[], slug: (title: string) => string): { flow:
       continue;
     }
     if (node.type === 'table') {
-      bucket.leafId = null;
+      if (!bucket.writeId) bucket.leafId = null;
       addContent(bucket, [tableBlock(node)], false);
       continue;
     }
