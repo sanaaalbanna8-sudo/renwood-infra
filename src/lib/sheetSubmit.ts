@@ -122,11 +122,11 @@ function postThroughForm(payload: SheetPayload): Promise<{ ok: boolean; message:
       frame.remove();
       resolve({ ok, message });
     };
-    const timer = window.setTimeout(() => finish(false, 'تعذر الاتصال بجدول المعلمة'), 25000);
+    const timer = window.setTimeout(() => finish(false, 'تعذر حفظ النتائج'), 25000);
     let loads = 0;
     frame.onload = () => {
       loads += 1;
-      if (loads > 1) finish(true, 'وصلت النتائج إلى جدول المعلمة');
+      if (loads > 1) finish(true, 'حُفظت النتائج');
     };
     document.body.append(frame, form);
     form.submit();
@@ -173,15 +173,15 @@ export async function submitResults(data: SaveData): Promise<{ ok: boolean; mess
     });
     const payload = (await response.json().catch(() => null)) as { ok?: boolean; message?: string } | null;
     if (payload && response.ok && payload.ok !== false) {
-      return { ok: true, message: payload.message || 'وصلت النتائج إلى جدول المعلمة' };
+      return { ok: true, message: 'حُفظت النتائج' };
     }
     const canFallBack = !payload || response.status === 502 || response.status === 503;
     if (payload && !canFallBack) {
-      return { ok: false, message: payload.message || 'تعذر إرسال النتائج إلى جدول المعلمة' };
+      return { ok: false, message: 'تعذر حفظ النتائج' };
     }
   } catch {
     /* The class site can also write straight to the sheet. */
   }
-  if (typeof document === 'undefined') return { ok: false, message: 'تعذر الاتصال بجدول المعلمة' };
+  if (typeof document === 'undefined') return { ok: false, message: 'تعذر حفظ النتائج' };
   return postThroughForm(JSON.parse(body) as SheetPayload);
 }

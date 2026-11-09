@@ -41,7 +41,7 @@ export function Summary() {
     }
     let cancel = false;
     setSendState('sending');
-    setSendNote('جارٍ إرسال النتائج إلى جدول المعلمة');
+    setSendNote('جارٍ حفظ النتائج');
     submitResults(data).then((result) => {
       if (cancel) return;
       setSendState(result.ok ? 'sent' : 'error');
