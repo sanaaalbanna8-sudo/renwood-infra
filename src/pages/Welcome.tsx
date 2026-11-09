@@ -7,7 +7,8 @@ import { HeroArt } from '../components/HeroArt';
 import { useStore } from '../context/Store';
 import { useTheme } from '../context/Theme';
 import { ar } from '../i18n/ar';
-import { clearSheetView, fetchStoredRow, markSheetView, restoreSheetRow } from '../lib/restoreSheet';
+import { clearSheetView, fetchStoredRow, isUnknownName, markSheetView, restoreSheetRow } from '../lib/restoreSheet';
+import type { StoredRow } from '../lib/restoreSheet';
 import { emptyData } from '../lib/storage';
 import { useTitle } from '../lib/useTitle';
 
@@ -28,17 +29,55 @@ export function Welcome() {
   const [restoreNote, setRestoreNote] = useState('');
   const [restoring, setRestoring] = useState(false);
   const saved = data.name.trim().length >= 2;
+  const savedWork = Object.keys(data.answers).length > 0 || Object.keys(data.quantities).length > 0;
+
+  function showRestored(row: StoredRow, trimmed: string, section: string, startFresh: boolean) {
+    if (row.ok && row.headers && row.values) {
+      const restored = restoreSheetRow(row.headers, row.values);
+      if (!restored) {
+        setRestoreNote(ar.restoreMissing);
+        return;
+      }
+      markSheetView();
+      flushSync(() => replaceSave(restored));
+      navigate('/summary');
+      return;
+    }
+    if (startFresh && isUnknownName(row)) {
+      clearSheetView();
+      const fresh = emptyData();
+      fresh.name = trimmed;
+      fresh.group = section;
+      fresh.createdAt = new Date().toISOString();
+      flushSync(() => replaceSave(fresh));
+      navigate('/wizard/0/0');
+      return;
+    }
+    if (!isUnknownName(row)) setRestoreNote(row.message || ar.restoreMissing);
+  }
 
   useEffect(() => {
     const key = 'renwood-resumed';
     const already = sessionStorage.getItem(key);
     sessionStorage.setItem(key, '1');
-    if (!already && data.name.trim().length >= 2 && data.lastPath) {
+    if (!already && saved && savedWork && data.lastPath) {
       navigate(data.lastPath, { replace: true });
       return;
     }
     setReady(true);
-  }, [data.lastPath, data.name, navigate]);
+  }, [data.lastPath, navigate, saved, savedWork]);
+
+  useEffect(() => {
+    if (!ready || savedWork || !saved) return;
+    setRestoring(true);
+    setRestoreNote(ar.restoreWorking);
+    void fetchStoredRow(data.name, data.group)
+      .then((row) => showRestored(row, data.name.trim(), data.group.trim(), false))
+      .catch(() => setRestoreNote(ar.restoreMissing))
+      .finally(() => setRestoring(false));
+    // يُجلب السجل مرة واحدة عند فتح الصفحة إن كان الاسم محفوظاً بلا اختيارات.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready]);
 
   if (!ready) return <Background />;
 
@@ -87,35 +126,12 @@ export function Welcome() {
               setRestoring(true);
               setRestoreNote(ar.restoreWorking);
               void fetchStoredRow(trimmed, section)
-                .then((row) => {
-                  if (row.ok && row.headers && row.values) {
-                    const restored = restoreSheetRow(row.headers, row.values);
-                    if (!restored) {
-                      setRestoreNote(ar.restoreMissing);
-                      return;
-                    }
-                    markSheetView();
-                    flushSync(() => replaceSave(restored));
-                    navigate('/summary');
-                    return;
-                  }
-                  if (row.needGroup || (row.message && !row.message.startsWith('لا يوجد سجل'))) {
-                    setRestoreNote(row.message || ar.restoreMissing);
-                    return;
-                  }
-                  clearSheetView();
-                  const fresh = emptyData();
-                  fresh.name = trimmed;
-                  fresh.group = section;
-                  fresh.createdAt = new Date().toISOString();
-                  flushSync(() => replaceSave(fresh));
-                  navigate('/wizard/0/0');
-                })
+                .then((row) => showRestored(row, trimmed, section, true))
                 .catch(() => setRestoreNote(ar.restoreMissing))
                 .finally(() => setRestoring(false));
             }}
           >
-            {saved && (
+            {saved && savedWork && (
               <p>
                 أهلاً <bdi>{data.name}</bdi>. إجاباتك محفوظة في هذا المتصفح.
               </p>
@@ -134,7 +150,7 @@ export function Welcome() {
             </button>
             <p className="faint">{ar.restoreHint}</p>
             {restoreNote ? <p className="muted">{restoreNote}</p> : null}
-            {saved && (
+            {saved && savedWork && (
               <button type="button" className="btn-ghost" style={{ width: '100%', marginTop: 8 }} onClick={() => navigate(continuePath(data.lastPath))}>
                 متابعة من حيث توقفت
               </button>

@@ -119,14 +119,26 @@ function loadJsonp(name: string, group: string): Promise<StoredRow> {
   });
 }
 
-export async function fetchStoredRow(name: string, group: string): Promise<StoredRow> {
+export function isUnknownName(row: StoredRow): boolean {
+  return row.ok === false && row.message === 'لا يوجد سجل بهذا الاسم';
+}
+
+async function requestRow(name: string, group: string): Promise<StoredRow> {
   const query = new URLSearchParams({ name: name.trim(), group: group.trim() });
   try {
     const response = await fetch(`/api/restore?${query}`);
     const payload = (await response.json().catch(() => null)) as StoredRow | null;
-    if (payload && (response.ok || response.status === 404 || payload.needGroup)) return payload;
+    if (payload && typeof payload.ok === 'boolean' && (response.ok || response.status === 404 || payload.needGroup)) {
+      return payload;
+    }
   } catch {
     /* الجدول يُقرأ مباشرة إن لم يكن وسيط الموقع جاهزاً */
   }
   return loadJsonp(name.trim(), group.trim());
+}
+
+export async function fetchStoredRow(name: string, group: string): Promise<StoredRow> {
+  const row = await requestRow(name, group);
+  if (group.trim() && row.message === 'لا يوجد سجل بهذا الاسم وهذه الشعبة') return requestRow(name, '');
+  return row;
 }
