@@ -135,7 +135,7 @@ export function Welcome() {
           >
             {saved && savedWork && (
               <p>
-                أهلاً <bdi>{data.name}</bdi>. إجاباتك محفوظة في هذا المتصفح.
+                أهلاً <bdi>{data.name}</bdi>. {ar.savedHere}
               </p>
             )}
             <label className="field">
@@ -157,7 +157,7 @@ export function Welcome() {
                 متابعة من حيث توقفت
               </button>
             )}
-            <p className="faint">تُحفظ إجاباتك تلقائياً في هذا المتصفح فقط.</p>
+            <p className="faint">{ar.saveNote}</p>
             {saved &&
               (confirming ? (
                 <div className="confirm">

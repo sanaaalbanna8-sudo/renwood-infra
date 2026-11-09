@@ -376,7 +376,7 @@ h2 { font-size: 1.25rem; margin: 0 0 8px; }
 
 .pager {
   position: sticky;
-  bottom: 0;
+  bottom: 76px;
   z-index: 5;
   display: flex;
   gap: 8px;
@@ -617,7 +617,7 @@ h2 { font-size: 1.25rem; margin: 0 0 8px; }
     flex-direction: column;
     position: sticky;
     top: 64px;
-    height: calc(100dvh - 64px);
+    height: calc(100dvh - 64px - 76px);
     overflow: auto;
     border-inline-end: 1px solid var(--line);
     background: color-mix(in srgb, var(--bg) 88%, transparent);
@@ -640,6 +640,7 @@ h2 { font-size: 1.25rem; margin: 0 0 8px; }
     border-inline-start: 1px solid var(--line);
     transform: translateX(110%);
     overflow: auto;
+    padding-bottom: 88px;
   }
   .sidebar.is-open { transform: translateX(0); }
   .scrim.show {
@@ -849,7 +850,7 @@ h2 { font-size: 1.25rem; margin: 0 0 8px; }
 .guide-side-group { display: grid; gap: 4px; margin-bottom: 12px; }
 .guide-side-name { display: flex; gap: 6px; align-items: center; margin: 8px 4px; font-weight: 700; }
 .guide-side-name span { overflow-wrap: anywhere; }
-.guide-page .pager { bottom: 72px; flex-wrap: wrap; }
+.guide-page .pager { position: static; flex-wrap: wrap; background: none; }
 @media (min-width: 800px) {
   .guide-cards { grid-template-columns: 1fr 1fr; }
 }
