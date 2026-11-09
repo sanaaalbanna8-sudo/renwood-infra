@@ -45,5 +45,12 @@ describe('sheet payload', () => {
     const unnamed = emptyData();
     unnamed.answers = { ج1: ['لابتوب خفيف'] };
     expect(hasProgressToSave(unnamed)).toBe(false);
+    const checked = emptyData();
+    checked.name = 'أمل';
+    checked.progress = { 'تاكد-قبل-الانتقال': { done: true, at: '2026-11-09' } };
+    expect(hasProgressToSave(checked)).toBe(true);
+    const saved = buildSheetPayload(checked, new Date('2026-11-09T08:00:00Z'));
+    const back = restoreSheetRow(saved.headers, saved.values);
+    expect(back?.progress['تاكد-قبل-الانتقال']?.done).toBe(true);
   });
 });

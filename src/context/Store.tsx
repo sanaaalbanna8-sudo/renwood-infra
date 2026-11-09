@@ -177,13 +177,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [queueSheetSave]);
 
   const toggleStep = useCallback((stepId: string) => {
+    clearSheetView();
+    queueSheetSave();
     setData((prev) => {
       const progress = { ...prev.progress };
       if (progress[stepId]?.done) delete progress[stepId];
       else progress[stepId] = { done: true, at: new Date().toISOString() };
       return touch({ ...prev, progress });
     });
-  }, []);
+  }, [queueSheetSave]);
 
   const skipStage = useCallback((stageId: string) => {
     setData((prev) => touch({ ...prev, skipped: { ...prev.skipped, [stageId]: new Date().toISOString() } }));

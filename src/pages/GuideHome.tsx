@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { GuideFlow } from '../components/guide/GuideFlow';
 import { ProgressRing } from '../components/ProgressRing';
 import { themeFor } from '../data/guideTheme';
-import { ar } from '../i18n/ar';
+import { ar, progressLabel } from '../i18n/ar';
 import { useStore } from '../context/Store';
 import { activityEntry, activityHasProgress, activityRatio, guide, guideRatio, partOneReady, resumePath } from '../lib/guide/catalog';
 import { useTitle } from '../lib/useTitle';
@@ -22,7 +22,7 @@ export function GuideHome() {
         </div>
         <div className="progress-chip">
           <ProgressRing value={ratio} />
-          <span>{Math.round(ratio * 100)}%</span>
+          <span>{progressLabel(ratio)}</span>
         </div>
         <Link to={resumePath(data)} className="btn-primary">
           {data.position.stage ? ar.guideResume : ar.guideStart}

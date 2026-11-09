@@ -5,7 +5,7 @@ import { GuideFlow } from '../components/guide/GuideFlow';
 import { ProgressRing } from '../components/ProgressRing';
 import { themeFor } from '../data/guideTheme';
 import { useStore } from '../context/Store';
-import { ar } from '../i18n/ar';
+import { ar, progressLabel } from '../i18n/ar';
 import { activityRatio, countedSteps, findStage, neighbor, partOneReady, stageCriteria, stagePath, stageRatio } from '../lib/guide/catalog';
 import { isPrepStage } from '../lib/guide/copyTable';
 import { useTitle } from '../lib/useTitle';
@@ -96,7 +96,7 @@ export function GuideStage() {
         </div>
         <div className="progress-chip">
           <ProgressRing value={ratio} />
-          <span>{Math.round(ratio * 100)}%</span>
+          <span>{progressLabel(ratio)}</span>
         </div>
         <Link to="/guide" className="btn-ghost">
           {ar.backToGuide}

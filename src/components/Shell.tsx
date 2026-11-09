@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useStore } from '../context/Store';
 import { useTheme } from '../context/Theme';
+import { guideRatio } from '../lib/guide/catalog';
+import { progressLabel } from '../i18n/ar';
 import { completionRatio } from '../lib/progress';
 import { Background } from './Background';
 import { ProgressRing } from './ProgressRing';
@@ -14,7 +16,8 @@ export function Shell() {
   const location = useLocation();
   const [open, setOpen] = useState(false);
   const [confirming, setConfirming] = useState(false);
-  const ratio = completionRatio(data);
+  const onGuide = location.pathname.startsWith('/guide');
+  const ratio = onGuide ? guideRatio(data.progress) : completionRatio(data);
   const percent = Math.round(ratio * 100);
 
   useEffect(() => {
@@ -64,7 +67,7 @@ export function Shell() {
             <span aria-hidden="true">{percent}%</span>
           </div>
           <p className="sr-only" aria-live="polite">
-            اكتمل {percent} بالمئة من البنية
+            {onGuide ? progressLabel(ratio) : `اكتمل ${percent} بالمئة من البنية`}
           </p>
           <button type="button" className="icon-btn" onClick={toggle} aria-pressed={theme === 'light'} aria-label={theme === 'dark' ? 'تفعيل الوضع الفاتح' : 'تفعيل الوضع الداكن'}>
             {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}

@@ -69,6 +69,11 @@ export function restoreSheetRow(headers: string[], values: Array<string | number
   }
 
   data.understanding = data.answers['ص2']?.[0] ?? '';
+  const checks = String(byHeader.get('خطوات الدليل') ?? '');
+  for (const id of checks.split('\n')) {
+    const stepId = id.trim();
+    if (stepId) data.progress[stepId] = { done: true, at: sentAt };
+  }
   return data;
 }
 

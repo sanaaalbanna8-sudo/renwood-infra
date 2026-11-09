@@ -75,6 +75,9 @@ export function buildSheetPayload(data: SaveData, date = new Date()): SheetPaylo
     values.push(stored?.location?.trim() || 'لم يُحدد');
   }
 
+  headers.push(GUIDE_STEPS);
+  values.push(doneStepIds(data));
+
   const warnings = checkRules({ answers: data.answers, other: data.other, priorities: data.priorities });
   const covered = coveredNeeds(data.answers, data.other).map((need) => need.title);
 
@@ -136,7 +139,17 @@ export function hasProgressToSave(data: SaveData): boolean {
   if (Object.values(data.answers).some((items) => items.some((item) => item.trim()))) return true;
   if (Object.values(data.other).some((item) => item.trim())) return true;
   if (Object.values(data.priorities).some((item) => item.trim())) return true;
-  return Object.values(data.quantities).some((item) => item.count != null || item.location.trim().length > 0);
+  if (Object.values(data.quantities).some((item) => item.count != null || item.location.trim().length > 0)) return true;
+  return Object.values(data.progress).some((mark) => mark.done);
+}
+
+const GUIDE_STEPS = 'خطوات الدليل';
+
+function doneStepIds(data: SaveData): string {
+  return Object.entries(data.progress)
+    .filter(([, mark]) => mark.done)
+    .map(([id]) => id)
+    .join('\n');
 }
 
 export function flushResults(data: SaveData): void {

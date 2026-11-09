@@ -29,7 +29,10 @@ export function Welcome() {
   const [restoreNote, setRestoreNote] = useState('');
   const [restoring, setRestoring] = useState(false);
   const saved = data.name.trim().length >= 2;
-  const savedWork = Object.keys(data.answers).length > 0 || Object.keys(data.quantities).length > 0;
+  const savedWork =
+    Object.keys(data.answers).length > 0 ||
+    Object.keys(data.quantities).length > 0 ||
+    Object.values(data.progress).some((mark) => mark.done);
 
   function showRestored(row: StoredRow, trimmed: string, section: string, startFresh: boolean) {
     if (row.ok && row.headers && row.values) {
@@ -115,8 +118,7 @@ export function Welcome() {
               const trimmed = name.trim();
               const section = group.trim();
               if (trimmed.length < 2 || restoring) return;
-              const alreadyHere =
-                data.name.trim() === trimmed && (Object.keys(data.answers).length > 0 || Object.keys(data.quantities).length > 0);
+              const alreadyHere = data.name.trim() === trimmed && savedWork;
               if (alreadyHere) {
                 clearSheetView();
                 flushSync(() => start(trimmed, section));

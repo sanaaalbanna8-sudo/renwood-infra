@@ -41,9 +41,16 @@ export const ar = {
   skipped: 'تم التخطي',
   stageOf: 'مرحلة',
   stepsDone: 'الخطوات المؤشرة',
+  doneShare: 'المنجز',
+  leftShare: 'المتبقي',
   overall: 'تقدم الدليل',
   guideResume: 'تابع من حيث توقفت',
   cheerKicker: 'كلمة لك',
   cheerClose: 'نكمّل الطريق',
   cheerCloseFinal: 'إلى الفصل الثاني بكل قوة بإذن الله',
 } as const;
+
+export function progressLabel(ratio: number): string {
+  const done = Math.round(Math.max(0, Math.min(1, ratio)) * 100);
+  return `${ar.doneShare} ${done}% · ${ar.leftShare} ${100 - done}%`;
+}
