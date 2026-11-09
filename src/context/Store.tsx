@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { questionById } from '../data/questions';
+import { clearSheetView } from '../lib/restoreSheet';
 import { emptyData, loadSave, writeSave } from '../lib/storage';
 import type { SaveData } from '../lib/types';
 
@@ -8,6 +9,7 @@ type QuantityPatch = { count?: number | null; location?: string };
 type StoreValue = {
   data: SaveData;
   start: (name: string, group: string) => void;
+  replaceSave: (next: SaveData) => void;
   markIntro: (stage: number) => void;
   setLastPath: (path: string) => void;
   chooseSingle: (id: string, option: string) => void;
@@ -46,6 +48,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
+  const replaceSave = useCallback((next: SaveData) => {
+    setData(touch(next));
+  }, []);
+
   const markIntro = useCallback((stage: number) => {
     setData((prev) =>
       prev.introsSeen.includes(stage) ? prev : touch({ ...prev, introsSeen: [...prev.introsSeen, stage] }),
@@ -57,10 +63,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const chooseSingle = useCallback((id: string, option: string) => {
+    clearSheetView();
     setData((prev) => touch({ ...prev, answers: { ...prev.answers, [id]: [option] } }));
   }, []);
 
   const toggleMulti = useCallback((id: string, option: string) => {
+    clearSheetView();
     setData((prev) => {
       const question = questionById(id);
       const current = new Set(prev.answers[id] ?? []);
@@ -82,6 +90,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const setText = useCallback((id: string, text: string) => {
+    clearSheetView();
     setData((prev) => {
       const answers = { ...prev.answers };
       if (text.trim()) answers[id] = [text];
@@ -95,6 +104,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const setOther = useCallback((id: string, text: string) => {
+    clearSheetView();
     setData((prev) => {
       const other = { ...prev.other };
       if (text) other[id] = text;
@@ -104,6 +114,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const setPriority = useCallback((tech: string, priority: string) => {
+    clearSheetView();
     setData((prev) => {
       const priorities = { ...prev.priorities };
       if (priority) priorities[tech] = priority;
@@ -113,6 +124,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const setQuantity = useCallback((label: string, patch: QuantityPatch) => {
+    clearSheetView();
     setData((prev) => {
       const current = prev.quantities[label] ?? { count: null, location: '' };
       const next = { ...current, ...patch };
@@ -142,12 +154,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
-  const reset = useCallback(() => setData(emptyData()), []);
+  const reset = useCallback(() => {
+    clearSheetView();
+    setData(emptyData());
+  }, []);
 
   const value = useMemo<StoreValue>(
     () => ({
       data,
       start,
+      replaceSave,
       markIntro,
       setLastPath,
       chooseSingle,
@@ -161,7 +177,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setGuidePosition,
       reset,
     }),
-    [data, start, markIntro, setLastPath, chooseSingle, toggleMulti, setText, setOther, setPriority, setQuantity, toggleStep, skipStage, setGuidePosition, reset],
+    [data, start, replaceSave, markIntro, setLastPath, chooseSingle, toggleMulti, setText, setOther, setPriority, setQuantity, toggleStep, skipStage, setGuidePosition, reset],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

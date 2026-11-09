@@ -6,6 +6,9 @@ import { Background } from '../components/Background';
 import { HeroArt } from '../components/HeroArt';
 import { useStore } from '../context/Store';
 import { useTheme } from '../context/Theme';
+import { ar } from '../i18n/ar';
+import { clearSheetView, fetchStoredRow, markSheetView, restoreSheetRow } from '../lib/restoreSheet';
+import { emptyData } from '../lib/storage';
 import { useTitle } from '../lib/useTitle';
 
 function continuePath(path: string): string {
@@ -15,13 +18,15 @@ function continuePath(path: string): string {
 
 export function Welcome() {
   useTitle();
-  const { data, start, reset } = useStore();
+  const { data, start, replaceSave, reset } = useStore();
   const { theme, toggle } = useTheme();
   const navigate = useNavigate();
   const [name, setName] = useState(data.name);
   const [group, setGroup] = useState(data.group);
   const [ready, setReady] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [restoreNote, setRestoreNote] = useState('');
+  const [restoring, setRestoring] = useState(false);
   const saved = data.name.trim().length >= 2;
 
   useEffect(() => {
@@ -68,9 +73,46 @@ export function Welcome() {
             style={{ padding: 18 }}
             onSubmit={(event) => {
               event.preventDefault();
-              if (name.trim().length < 2) return;
-              flushSync(() => start(name, group));
-              navigate(continuePath(data.lastPath));
+              const trimmed = name.trim();
+              const section = group.trim();
+              if (trimmed.length < 2 || restoring) return;
+              const alreadyHere =
+                data.name.trim() === trimmed && (Object.keys(data.answers).length > 0 || Object.keys(data.quantities).length > 0);
+              if (alreadyHere) {
+                clearSheetView();
+                flushSync(() => start(trimmed, section));
+                navigate(continuePath(data.lastPath));
+                return;
+              }
+              setRestoring(true);
+              setRestoreNote(ar.restoreWorking);
+              void fetchStoredRow(trimmed, section)
+                .then((row) => {
+                  if (row.ok && row.headers && row.values) {
+                    const restored = restoreSheetRow(row.headers, row.values);
+                    if (!restored) {
+                      setRestoreNote(ar.restoreMissing);
+                      return;
+                    }
+                    markSheetView();
+                    flushSync(() => replaceSave(restored));
+                    navigate('/summary');
+                    return;
+                  }
+                  if (row.needGroup || (row.message && !row.message.startsWith('لا يوجد سجل'))) {
+                    setRestoreNote(row.message || ar.restoreMissing);
+                    return;
+                  }
+                  clearSheetView();
+                  const fresh = emptyData();
+                  fresh.name = trimmed;
+                  fresh.group = section;
+                  fresh.createdAt = new Date().toISOString();
+                  flushSync(() => replaceSave(fresh));
+                  navigate('/wizard/0/0');
+                })
+                .catch(() => setRestoreNote(ar.restoreMissing))
+                .finally(() => setRestoring(false));
             }}
           >
             {saved && (
@@ -87,9 +129,11 @@ export function Welcome() {
               <span>الشعبة (اختياري)</span>
               <input value={group} onChange={(event) => setGroup(event.target.value)} autoComplete="off" />
             </label>
-            <button className="btn-primary" type="submit" disabled={name.trim().length < 2} style={{ width: '100%' }}>
-              {saved ? 'حفظ ومتابعة' : 'ابدأ'}
+            <button className="btn-primary" type="submit" disabled={name.trim().length < 2 || restoring} style={{ width: '100%' }}>
+              {restoring ? ar.restoreWorking : saved ? 'حفظ ومتابعة' : 'ابدأ'}
             </button>
+            <p className="faint">{ar.restoreHint}</p>
+            {restoreNote ? <p className="muted">{restoreNote}</p> : null}
             {saved && (
               <button type="button" className="btn-ghost" style={{ width: '100%', marginTop: 8 }} onClick={() => navigate(continuePath(data.lastPath))}>
                 متابعة من حيث توقفت

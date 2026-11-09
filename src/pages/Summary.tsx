@@ -8,6 +8,8 @@ import { useStore } from '../context/Store';
 import { useTheme } from '../context/Theme';
 import { questionPath } from '../lib/progress';
 import { buildReport, type ReportRow } from '../lib/report';
+import { ar } from '../i18n/ar';
+import { isSheetView } from '../lib/restoreSheet';
 import { submitResults } from '../lib/sheetSubmit';
 import type { SaveData, Warning } from '../lib/types';
 import { useTitle } from '../lib/useTitle';
@@ -32,6 +34,11 @@ export function Summary() {
 
   useEffect(() => {
     if (readonly || data.name.trim().length < 2) return;
+    if (isSheetView()) {
+      setSendState('idle');
+      setSendNote(ar.restoredNote);
+      return;
+    }
     let cancel = false;
     setSendState('sending');
     setSendNote('جارٍ إرسال النتائج إلى جدول المعلمة');

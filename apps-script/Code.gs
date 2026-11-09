@@ -1,7 +1,62 @@
 const SPREADSHEET_ID = '1tzenT7ChtVTmYs6v2ixCDQHJ-a78AJdmRJSphnRozTo';
 
-function doGet() {
-  return json({ ok: true, message: 'جاهز' });
+function doGet(e) {
+  const params = (e && e.parameter) || {};
+  let payload;
+  try {
+    payload = String(params.action || '') === 'restore' ? restoreStudent(params) : { ok: true, message: 'جاهز' };
+  } catch (error) {
+    payload = { ok: false, message: String(error && error.message ? error.message : error) };
+  }
+  const callback = String(params.callback || '');
+  if (/^[A-Za-z0-9_]+$/.test(callback)) {
+    return ContentService.createTextOutput(callback + '(' + JSON.stringify(payload) + ')').setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return json(payload);
+}
+
+function restoreStudent(params) {
+  const name = String(params.name || '').trim();
+  const group = String(params.group || '').trim();
+  if (name.length < 2) return { ok: false, message: 'الاسم ناقص' };
+  const detail = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('التفاصيل');
+  if (!detail || detail.getLastRow() < 2) return { ok: false, message: 'لا يوجد سجل بهذا الاسم' };
+  const width = detail.getLastColumn();
+  const headers = detail
+    .getRange(1, 1, 1, width)
+    .getValues()[0]
+    .map(function (cell) {
+      return String(cell);
+    });
+  const body = detail.getRange(2, 1, detail.getLastRow() - 1, width).getValues();
+  const matches = [];
+  for (let i = 0; i < body.length; i += 1) {
+    if (String(body[i][1] || '').trim() === name) matches.push(body[i]);
+  }
+  if (!matches.length) return { ok: false, message: 'لا يوجد سجل بهذا الاسم' };
+  let row = null;
+  if (group) {
+    for (let i = 0; i < matches.length; i += 1) {
+      if (String(matches[i][2] || '').trim() === group) row = matches[i];
+    }
+    if (!row) return { ok: false, message: 'لا يوجد سجل بهذا الاسم وهذه الشعبة' };
+  } else if (matches.length === 1) {
+    row = matches[0];
+  } else {
+    const groups = [];
+    matches.forEach(function (item) {
+      const value = String(item[2] || '').trim();
+      if (groups.indexOf(value) === -1) groups.push(value);
+    });
+    return { ok: false, needGroup: true, groups: groups, message: 'هذا الاسم موجود في أكثر من شعبة. اكتبي الشعبة.' };
+  }
+  return { ok: true, headers: headers, values: row.map(plainCell) };
+}
+
+function plainCell(cell) {
+  if (cell instanceof Date) return Utilities.formatDate(cell, 'Asia/Amman', 'yyyy-MM-dd HH:mm');
+  if (typeof cell === 'number') return cell;
+  return cell == null ? '' : String(cell);
 }
 
 function requestData(e) {

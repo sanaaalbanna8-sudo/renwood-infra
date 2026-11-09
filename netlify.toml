@@ -11,6 +11,11 @@
   status = 200
 
 [[redirects]]
+  from = "/api/restore"
+  to = "/.netlify/functions/restore"
+  status = 200
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { questions } from '../data/questions';
 import { emptyData } from './storage';
+import { restoreSheetRow } from './restoreSheet';
 import { buildSheetPayload, wrapChoice } from './sheetSubmit';
 
 describe('sheet payload', () => {
@@ -23,5 +24,15 @@ describe('sheet payload', () => {
     expect(daisy?.column).toBe(4);
     expect(daisy?.options).toEqual(questions.find((question) => question.id === 'ج1')?.options);
     expect(payload.catalog).toHaveLength(questions.filter((question) => question.options.length > 0).length);
+    data.other = { ج1: 'جهاز خاص' };
+    data.quantities = { 'حواسيب ديزي': { count: 2, location: 'مكتب ديزي' } };
+    const again = buildSheetPayload(data, new Date('2026-11-07T18:00:00Z'));
+    const restored = restoreSheetRow(again.headers, again.values);
+    expect(restored?.name).toBe('أمل');
+    expect(restored?.group).toBe('أ');
+    expect(restored?.answers['ج1']).toEqual(['لابتوب خفيف', 'حاسوب مكتبي']);
+    expect(restored?.other['ج1']).toBe('جهاز خاص');
+    expect(restored?.priorities['شبكات 4G وكذلك 5G']).toBe('الآن');
+    expect(restored?.quantities['حواسيب ديزي']).toEqual({ count: 2, location: 'مكتب ديزي' });
   });
 });
