@@ -14,7 +14,9 @@ describe('نسخ إطار الجدول', () => {
         { cells: ['[قرارك]', '[البديل]'], example: false },
       ],
     });
-    expect(frame.text.startsWith('القرار\tالبديل\n')).toBe(true);
+    expect(frame.text.startsWith('البديل\tالقرار\n')).toBe(true);
+    expect(frame.html).toContain('dir="ltr"');
+    expect(frame.html.indexOf('البديل')).toBeLessThan(frame.html.indexOf('القرار'));
     expect(frame.text).not.toContain('مثال');
     expect(frame.text).not.toContain('نظام حجز');
     expect(frame.text).not.toContain('[قرارك]');
