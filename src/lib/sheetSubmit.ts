@@ -130,6 +130,26 @@ function postThroughForm(payload: SheetPayload): Promise<{ ok: boolean; message:
   });
 }
 
+/** في الجدول ما دامت هناك إجابة واحدة على الأقل، حتى لو لم يكتمل الجزء. */
+export function hasProgressToSave(data: SaveData): boolean {
+  if (data.name.trim().length < 2) return false;
+  if (Object.values(data.answers).some((items) => items.some((item) => item.trim()))) return true;
+  if (Object.values(data.other).some((item) => item.trim())) return true;
+  if (Object.values(data.priorities).some((item) => item.trim())) return true;
+  return Object.values(data.quantities).some((item) => item.count != null || item.location.trim().length > 0);
+}
+
+export function flushResults(data: SaveData): void {
+  if (!hasProgressToSave(data) || typeof navigator === 'undefined') return;
+  const payload = JSON.stringify(buildSheetPayload(data));
+  if (navigator.sendBeacon) {
+    const body = new FormData();
+    body.append('payload', payload);
+    if (navigator.sendBeacon(SHEETS_WEB_APP_URL, body)) return;
+  }
+  void submitResults(data);
+}
+
 export async function submitResults(data: SaveData): Promise<{ ok: boolean; message: string }> {
   const body = JSON.stringify(buildSheetPayload(data));
   try {

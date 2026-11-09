@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { questions } from '../data/questions';
 import { emptyData } from './storage';
 import { restoreSheetRow } from './restoreSheet';
-import { buildSheetPayload, wrapChoice } from './sheetSubmit';
+import { buildSheetPayload, hasProgressToSave, wrapChoice } from './sheetSubmit';
 
 describe('sheet payload', () => {
   it('puts every question and a wrapped choice on one student row', () => {
@@ -34,5 +34,16 @@ describe('sheet payload', () => {
     expect(restored?.other['ج1']).toBe('جهاز خاص');
     expect(restored?.priorities['شبكات 4G وكذلك 5G']).toBe('الآن');
     expect(restored?.quantities['حواسيب ديزي']).toEqual({ count: 2, location: 'مكتب ديزي' });
+  });
+
+  it('يحفظ الاسم إذا بدأت الاختيارات ولو لم يكتمل الجزء', () => {
+    const empty = emptyData();
+    empty.name = 'أمل';
+    expect(hasProgressToSave(empty)).toBe(false);
+    empty.answers = { ج1: ['لابتوب خفيف'] };
+    expect(hasProgressToSave(empty)).toBe(true);
+    const unnamed = emptyData();
+    unnamed.answers = { ج1: ['لابتوب خفيف'] };
+    expect(hasProgressToSave(unnamed)).toBe(false);
   });
 });

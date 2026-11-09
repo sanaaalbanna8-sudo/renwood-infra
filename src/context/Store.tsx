@@ -1,6 +1,7 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { questionById } from '../data/questions';
-import { clearSheetView } from '../lib/restoreSheet';
+import { clearSheetView, isSheetView } from '../lib/restoreSheet';
+import { flushResults, hasProgressToSave, submitResults } from '../lib/sheetSubmit';
 import { emptyData, loadSave, writeSave } from '../lib/storage';
 import type { SaveData } from '../lib/types';
 
@@ -32,10 +33,44 @@ function touch(data: SaveData): SaveData {
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<SaveData>(() => loadSave());
+  const dataRef = useRef(data);
+  dataRef.current = data;
+  const saveGeneration = useRef(0);
+  const [queuedSave, setQueuedSave] = useState(0);
+
+  const queueSheetSave = useCallback(() => {
+    saveGeneration.current += 1;
+    setQueuedSave(saveGeneration.current);
+  }, []);
 
   useEffect(() => {
     writeSave(data);
   }, [data]);
+
+  useEffect(() => {
+    if (queuedSave === 0) return;
+    const send = () => {
+      const current = dataRef.current;
+      if (isSheetView() || !hasProgressToSave(current)) return;
+      void submitResults(current);
+    };
+    const timer = window.setTimeout(send, 2000);
+    const flush = () => {
+      const current = dataRef.current;
+      if (isSheetView() || !hasProgressToSave(current)) return;
+      flushResults(current);
+    };
+    const onHide = () => {
+      if (document.visibilityState === 'hidden') flush();
+    };
+    window.addEventListener('pagehide', flush);
+    document.addEventListener('visibilitychange', onHide);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener('pagehide', flush);
+      document.removeEventListener('visibilitychange', onHide);
+    };
+  }, [queuedSave]);
 
   const start = useCallback((name: string, group: string) => {
     setData((prev) =>
@@ -64,11 +99,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const chooseSingle = useCallback((id: string, option: string) => {
     clearSheetView();
+    queueSheetSave();
     setData((prev) => touch({ ...prev, answers: { ...prev.answers, [id]: [option] } }));
-  }, []);
+  }, [queueSheetSave]);
 
   const toggleMulti = useCallback((id: string, option: string) => {
     clearSheetView();
+    queueSheetSave();
     setData((prev) => {
       const question = questionById(id);
       const current = new Set(prev.answers[id] ?? []);
@@ -87,10 +124,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }
       return touch({ ...prev, answers, priorities });
     });
-  }, []);
+  }, [queueSheetSave]);
 
   const setText = useCallback((id: string, text: string) => {
     clearSheetView();
+    queueSheetSave();
     setData((prev) => {
       const answers = { ...prev.answers };
       if (text.trim()) answers[id] = [text];
@@ -101,30 +139,33 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         understanding: id === 'ص2' ? text : prev.understanding,
       });
     });
-  }, []);
+  }, [queueSheetSave]);
 
   const setOther = useCallback((id: string, text: string) => {
     clearSheetView();
+    queueSheetSave();
     setData((prev) => {
       const other = { ...prev.other };
       if (text) other[id] = text;
       else delete other[id];
       return touch({ ...prev, other });
     });
-  }, []);
+  }, [queueSheetSave]);
 
   const setPriority = useCallback((tech: string, priority: string) => {
     clearSheetView();
+    queueSheetSave();
     setData((prev) => {
       const priorities = { ...prev.priorities };
       if (priority) priorities[tech] = priority;
       else delete priorities[tech];
       return touch({ ...prev, priorities });
     });
-  }, []);
+  }, [queueSheetSave]);
 
   const setQuantity = useCallback((label: string, patch: QuantityPatch) => {
     clearSheetView();
+    queueSheetSave();
     setData((prev) => {
       const current = prev.quantities[label] ?? { count: null, location: '' };
       const next = { ...current, ...patch };
@@ -133,7 +174,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       else quantities[label] = next;
       return touch({ ...prev, quantities });
     });
-  }, []);
+  }, [queueSheetSave]);
 
   const toggleStep = useCallback((stepId: string) => {
     setData((prev) => {
